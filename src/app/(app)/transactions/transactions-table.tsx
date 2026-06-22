@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
+import { ChevronRight, Search } from "lucide-react";
 
 import type { TxRow } from "@/lib/finanzas/data";
 import { money, shortDate } from "@/lib/finanzas/format";
@@ -21,6 +21,14 @@ export function TransactionsTable({
   const [dir, setDir] = useState<Dir>("all");
   const [cat, setCat] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [open, setOpen] = useState<Set<string>>(new Set());
+
+  const toggle = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -97,34 +105,61 @@ export function TransactionsTable({
             </thead>
             <tbody className="divide-y divide-line">
               {filtered.map((t) => (
-                <tr key={t.id} className="align-middle">
-                  <td className="whitespace-nowrap px-5 py-2.5 text-ink">
-                    {shortDate(t.date)}
-                  </td>
-                  <td className="max-w-md px-5 py-2.5">
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="size-2.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: t.categoryColor ?? "#cbd2dd" }}
-                      />
-                      <span className="truncate text-navy">
-                        {t.counterparty ?? t.description}
-                      </span>
-                    </span>
-                  </td>
-                  <td className="px-5 py-2.5">
-                    <CategorySelect txId={t.id} categoryId={t.categoryId} options={options} />
-                  </td>
-                  <td
-                    className={cn(
-                      "whitespace-nowrap px-5 py-2.5 text-right font-medium tabular-nums",
-                      t.direction === "in" ? "text-income" : "text-navy",
-                    )}
-                  >
-                    {t.direction === "in" ? "+" : "-"}
-                    {money(t.amount)}
-                  </td>
-                </tr>
+                <Fragment key={t.id}>
+                  <tr className="align-middle">
+                    <td className="whitespace-nowrap px-5 py-2.5 text-ink">
+                      {shortDate(t.date)}
+                    </td>
+                    <td className="max-w-md px-5 py-2.5">
+                      <button
+                        type="button"
+                        onClick={() => toggle(t.id)}
+                        className="flex w-full items-center gap-2 text-left"
+                      >
+                        <ChevronRight
+                          className={cn(
+                            "size-3.5 shrink-0 text-faint transition-transform",
+                            open.has(t.id) && "rotate-90",
+                          )}
+                        />
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: t.categoryColor ?? "#cbd2dd" }}
+                        />
+                        <span className="truncate text-navy hover:text-brand">
+                          {t.counterparty ?? t.description}
+                        </span>
+                      </button>
+                    </td>
+                    <td className="px-5 py-2.5">
+                      <CategorySelect txId={t.id} categoryId={t.categoryId} options={options} />
+                    </td>
+                    <td
+                      className={cn(
+                        "whitespace-nowrap px-5 py-2.5 text-right font-medium tabular-nums",
+                        t.direction === "in" ? "text-income" : "text-navy",
+                      )}
+                    >
+                      {t.direction === "in" ? "+" : "-"}
+                      {money(t.amount)}
+                    </td>
+                  </tr>
+                  {open.has(t.id) && (
+                    <tr className="bg-surface/60">
+                      <td />
+                      <td colSpan={3} className="px-5 pb-3 pt-0">
+                        <div className="space-y-1 rounded-lg border border-line bg-white p-3 text-xs">
+                          <p className="text-navy">{t.description}</p>
+                          {t.rawDetail ? (
+                            <p className="leading-relaxed text-ink">{t.rawDetail}</p>
+                          ) : (
+                            <p className="text-faint">Sin detalle adicional en el estado de cuenta.</p>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
               {filtered.length === 0 && (
                 <tr>

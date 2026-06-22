@@ -9,6 +9,7 @@ export type TxRow = {
   date: string;
   description: string;
   counterparty: string | null;
+  rawDetail: string | null;
   amount: number;
   direction: "in" | "out";
   kind: string;
@@ -46,6 +47,7 @@ export async function getStatementTransactions(
       date: transactions.date,
       description: transactions.description,
       counterparty: transactions.counterparty,
+      rawDetail: transactions.rawDetail,
       amount: transactions.amount,
       direction: transactions.direction,
       kind: transactions.kind,
@@ -72,6 +74,7 @@ export async function getTransactions(ownerId: string): Promise<TxRow[]> {
       date: transactions.date,
       description: transactions.description,
       counterparty: transactions.counterparty,
+      rawDetail: transactions.rawDetail,
       amount: transactions.amount,
       direction: transactions.direction,
       kind: transactions.kind,
