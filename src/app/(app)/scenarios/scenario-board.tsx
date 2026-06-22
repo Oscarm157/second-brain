@@ -112,7 +112,12 @@ export function ScenarioBoard({
 
   const list = (items: Item[], accent: string) => (
     <div className="overflow-hidden rounded-xl border border-line bg-white">
-      <div className="border-b border-line px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-faint">
+      <div
+        className={cn(
+          "px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-white",
+          accent === "Ingresos" ? "bg-income" : "bg-expense",
+        )}
+      >
         {accent}
       </div>
       <ul className="divide-y divide-line">

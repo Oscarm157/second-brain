@@ -74,18 +74,24 @@ export default async function DashboardPage({
         saldoFinal={kpis.saldoFinal}
       />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section className="rounded-xl border border-line bg-white p-5 lg:col-span-2 lg:p-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="rounded-xl border border-line bg-white p-5 lg:p-6">
           <div className="mb-5">
-            <h2 className="text-sm font-semibold text-navy">Gasto por categoría</h2>
-            <p className="text-xs text-faint">A dónde se fue el dinero este periodo</p>
+            <h2 className="inline-flex rounded-md bg-income px-2.5 py-1 text-sm font-semibold text-white">
+              Ingreso por categoría
+            </h2>
           </div>
-          <SpendDonut data={spendByCategory} total={kpis.gastos} />
+          <IncomeComposition data={incomeByCategory} total={kpis.ingresos} />
         </section>
 
         <section className="rounded-xl border border-line bg-white p-5 lg:p-6">
-          <h2 className="mb-5 text-sm font-semibold text-navy">Ingreso por categoría</h2>
-          <IncomeComposition data={incomeByCategory} total={kpis.ingresos} />
+          <div className="mb-5">
+            <h2 className="inline-flex rounded-md bg-expense px-2.5 py-1 text-sm font-semibold text-white">
+              Gasto por categoría
+            </h2>
+            <p className="mt-1.5 text-xs text-faint">A dónde se fue el dinero este periodo</p>
+          </div>
+          <SpendDonut data={spendByCategory} total={kpis.gastos} />
         </section>
       </div>
 
