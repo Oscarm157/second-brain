@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
 
 import type { TxRow } from "@/lib/finanzas/data";
-import { money, shortDate } from "@/lib/finanzas/format";
+import { money, parseDetail, shortDate } from "@/lib/finanzas/format";
 import { cn } from "@/lib/utils";
 import { CategorySelect } from "@/components/category-select";
 
@@ -148,13 +148,35 @@ export function TransactionsTable({
                     <tr className="bg-surface/60">
                       <td />
                       <td colSpan={3} className="px-5 pb-3 pt-0">
-                        <div className="space-y-1 rounded-lg border border-line bg-white p-3 text-xs">
-                          <p className="text-navy">{t.description}</p>
-                          {t.rawDetail ? (
-                            <p className="leading-relaxed text-ink">{t.rawDetail}</p>
-                          ) : (
-                            <p className="text-faint">Sin detalle adicional en el estado de cuenta.</p>
-                          )}
+                        <div className="rounded-lg border border-line bg-white p-4 text-xs">
+                          <p className="mb-3 font-medium text-navy">{t.description}</p>
+                          {(() => {
+                            const fields = parseDetail(t.rawDetail);
+                            if (fields.length === 0) {
+                              return t.rawDetail ? (
+                                <p className="leading-relaxed text-ink">{t.rawDetail}</p>
+                              ) : (
+                                <p className="text-faint">
+                                  Sin detalle adicional en el estado de cuenta.
+                                </p>
+                              );
+                            }
+                            return (
+                              <dl className="grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+                                {fields.map((f) => (
+                                  <div
+                                    key={f.label}
+                                    className="flex justify-between gap-3 border-b border-line/60 pb-1.5"
+                                  >
+                                    <dt className="shrink-0 text-faint">{f.label}</dt>
+                                    <dd className="truncate text-right font-medium text-navy">
+                                      {f.value}
+                                    </dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            );
+                          })()}
                         </div>
                       </td>
                     </tr>
