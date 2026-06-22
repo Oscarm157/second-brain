@@ -49,6 +49,7 @@ const CATEGORIES = [
   { name: "Depósitos recibidos", kind: "income", color: "#2456e6", icon: "arrow-down" },
   { name: "Reembolsos", kind: "income", color: "#0fa3a3", icon: "rotate-ccw" },
   { name: "Sin categoría", kind: "expense", color: "#cbd2dd", icon: "help-circle" },
+  { name: "Omitido", kind: "expense", color: "#cbd2dd", icon: "eye-off" },
 ];
 
 const existingCats = await sql`select name from categories where owner_id = ${userId}`;
@@ -62,6 +63,8 @@ for (const c of CATEGORIES) {
   `;
   added++;
 }
+// "Omitido" no cuenta en los totales (excludeFromFlow).
+await sql`update categories set exclude_from_flow = true where owner_id = ${userId} and name = 'Omitido'`;
 console.log(`Categorías: ${added} nuevas, ${haveCats.size} ya existían.`);
 
 // Reglas base de categorización (comercios comunes en MX). El import las aplica

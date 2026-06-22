@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { categories, statements, transactions } from "@/lib/schema";
 
@@ -107,6 +107,24 @@ export async function listCategories(ownerId: string) {
     .select()
     .from(categories)
     .where(eq(categories.ownerId, ownerId))
+    .orderBy(categories.kind, categories.name);
+}
+
+// Categorías con el número de movimientos que tienen (para la página de gestión).
+export async function listCategoriesWithCounts(ownerId: string) {
+  return db
+    .select({
+      id: categories.id,
+      name: categories.name,
+      kind: categories.kind,
+      color: categories.color,
+      excludeFromFlow: categories.excludeFromFlow,
+      count: sql<number>`count(${transactions.id})::int`,
+    })
+    .from(categories)
+    .leftJoin(transactions, eq(transactions.categoryId, categories.id))
+    .where(eq(categories.ownerId, ownerId))
+    .groupBy(categories.id)
     .orderBy(categories.kind, categories.name);
 }
 

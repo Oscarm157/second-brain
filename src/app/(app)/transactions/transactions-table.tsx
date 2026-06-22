@@ -1,9 +1,11 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
-import { ChevronRight, Search } from "lucide-react";
+import { Fragment, useMemo, useState, useTransition } from "react";
+import { ChevronRight, Search, X } from "lucide-react";
+import { toast } from "sonner";
 
 import type { TxRow } from "@/lib/finanzas/data";
+import { updateTransactionCategories } from "@/app/(app)/import/actions";
 import { money, parseDetail, shortDate } from "@/lib/finanzas/format";
 import { cn } from "@/lib/utils";
 import { CategorySelect } from "@/components/category-select";
@@ -22,9 +24,19 @@ export function TransactionsTable({
   const [cat, setCat] = useState<string>("all");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkCat, setBulkCat] = useState("");
+  const [pending, startTransition] = useTransition();
 
   const toggle = (id: string) =>
     setOpen((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const toggleSel = (id: string) =>
+    setSelected((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -42,6 +54,28 @@ export function TransactionsTable({
       return true;
     });
   }, [rows, dir, cat, q]);
+
+  const allSelected = filtered.length > 0 && filtered.every((t) => selected.has(t.id));
+  const toggleAll = () =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allSelected) filtered.forEach((t) => next.delete(t.id));
+      else filtered.forEach((t) => next.add(t.id));
+      return next;
+    });
+
+  function moveSelected() {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    const target = bulkCat || null;
+    startTransition(async () => {
+      await updateTransactionCategories(ids, target);
+      const name = options.find((o) => o.id === bulkCat)?.name ?? "Sin categoría";
+      toast.success(`${ids.length} movimientos movidos a ${name}.`);
+      setSelected(new Set());
+      setBulkCat("");
+    });
+  }
 
   const net = filtered.reduce((a, t) => a + (t.direction === "in" ? t.amount : -t.amount), 0);
 
@@ -92,11 +126,58 @@ export function TransactionsTable({
         </div>
       </div>
 
+      {selected.size > 0 && (
+        <div className="sticky top-2 z-20 flex flex-col gap-3 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm font-medium text-navy">
+            {selected.size} seleccionados
+          </span>
+          <div className="flex items-center gap-2">
+            <select
+              value={bulkCat}
+              onChange={(e) => setBulkCat(e.target.value)}
+              className="h-9 max-w-52 rounded-md border border-line bg-white px-2 text-sm text-navy outline-none focus-visible:border-brand"
+            >
+              <option value="">Sin categoría</option>
+              {options.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={moveSelected}
+              disabled={pending}
+              className="h-9 rounded-md bg-brand px-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:opacity-60"
+            >
+              {pending ? "Moviendo..." : `Mover ${selected.size}`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              aria-label="Limpiar selección"
+              className="text-ink transition-colors hover:text-navy"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-xl border border-line bg-white">
         <div className="max-h-[68vh] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr className="text-left text-xs uppercase tracking-wide text-faint">
+                <th className="w-10 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label="Seleccionar todos"
+                    className="size-4 accent-brand"
+                  />
+                </th>
                 <th className="px-5 py-3 font-medium">Fecha</th>
                 <th className="px-5 py-3 font-medium">Movimiento</th>
                 <th className="px-5 py-3 font-medium">Categoría</th>
@@ -106,7 +187,22 @@ export function TransactionsTable({
             <tbody className="divide-y divide-line">
               {filtered.map((t) => (
                 <Fragment key={t.id}>
-                  <tr className="align-middle">
+                  <tr
+                    className={cn(
+                      "align-middle",
+                      selected.has(t.id) && "bg-brand-soft/50",
+                      t.categoryExcluded && "opacity-55",
+                    )}
+                  >
+                    <td className="px-4 py-2.5">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(t.id)}
+                        onChange={() => toggleSel(t.id)}
+                        aria-label="Seleccionar movimiento"
+                        className="size-4 accent-brand"
+                      />
+                    </td>
                     <td className="whitespace-nowrap px-5 py-2.5 text-ink">
                       {shortDate(t.date)}
                     </td>
@@ -129,6 +225,11 @@ export function TransactionsTable({
                         <span className="truncate text-navy hover:text-brand">
                           {t.counterparty ?? t.description}
                         </span>
+                        {t.categoryExcluded && (
+                          <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-xs text-ink">
+                            No cuenta
+                          </span>
+                        )}
                       </button>
                     </td>
                     <td className="px-5 py-2.5">
@@ -146,7 +247,7 @@ export function TransactionsTable({
                   </tr>
                   {open.has(t.id) && (
                     <tr className="bg-surface/60">
-                      <td />
+                      <td colSpan={2} />
                       <td colSpan={3} className="px-5 pb-3 pt-0">
                         <div className="rounded-lg border border-line bg-white p-4 text-xs">
                           <p className="mb-3 font-medium text-navy">{t.description}</p>
@@ -185,7 +286,7 @@ export function TransactionsTable({
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-ink">
+                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-ink">
                     Ningún movimiento con esos filtros.
                   </td>
                 </tr>

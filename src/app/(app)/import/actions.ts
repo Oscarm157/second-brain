@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
@@ -212,6 +212,35 @@ export async function updateTransactionCategory(txId: string, categoryId: string
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
   revalidatePath("/import", "layout");
+}
+
+const bulkSchema = z.array(z.string().uuid()).min(1).max(1000);
+
+// Mueve varios movimientos a una categoría de golpe (override manual, sin aprender regla).
+export async function updateTransactionCategories(
+  txIds: string[],
+  categoryId: string | null,
+) {
+  const me = await requireUser();
+  const parsed = bulkSchema.safeParse(txIds);
+  if (!parsed.success) return;
+  const catId = categoryId && uuid.safeParse(categoryId).success ? categoryId : null;
+
+  if (catId) {
+    const owned = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(and(eq(categories.id, catId), eq(categories.ownerId, me.id)));
+    if (!owned[0]) return;
+  }
+
+  await db
+    .update(transactions)
+    .set({ categoryId: catId })
+    .where(and(inArray(transactions.id, parsed.data), eq(transactions.ownerId, me.id)));
+
+  revalidatePath("/transactions");
+  revalidatePath("/dashboard");
 }
 
 export async function confirmStatement(statementId: string) {
