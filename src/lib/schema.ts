@@ -80,6 +80,9 @@ export const categories = pgTable("categories", {
   kind: text("kind").$type<CategoryKind>().notNull().default("expense"),
   color: text("color").notNull().default("#2456e6"),
   icon: text("icon").notNull().default("circle"),
+  // Categorías que no cuentan como gasto ni ingreso real (ej. "Entre mis cuentas":
+  // dinero propio moviéndose entre cuentas). Visibles, pero fuera de los totales.
+  excludeFromFlow: boolean("exclude_from_flow").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

@@ -17,6 +17,7 @@ export type TxRow = {
   categoryId: string | null;
   categoryName: string | null;
   categoryColor: string | null;
+  categoryExcluded: boolean;
   currency: string;
 };
 
@@ -55,6 +56,7 @@ export async function getStatementTransactions(
       categoryId: transactions.categoryId,
       categoryName: categories.name,
       categoryColor: categories.color,
+      categoryExcluded: categories.excludeFromFlow,
       currency: transactions.currency,
     })
     .from(transactions)
@@ -63,7 +65,7 @@ export async function getStatementTransactions(
       and(eq(transactions.ownerId, ownerId), eq(transactions.statementId, statementId)),
     )
     .orderBy(desc(transactions.date));
-  return rows.map((r) => ({ ...r, amount: n(r.amount) }));
+  return rows.map((r) => ({ ...r, amount: n(r.amount), categoryExcluded: !!r.categoryExcluded }));
 }
 
 // Movimientos de flujo (sin cajitas internas) para categorizar manualmente.
@@ -82,13 +84,14 @@ export async function getTransactions(ownerId: string): Promise<TxRow[]> {
       categoryId: transactions.categoryId,
       categoryName: categories.name,
       categoryColor: categories.color,
+      categoryExcluded: categories.excludeFromFlow,
       currency: transactions.currency,
     })
     .from(transactions)
     .leftJoin(categories, eq(transactions.categoryId, categories.id))
     .where(and(eq(transactions.ownerId, ownerId), eq(transactions.isInternal, false)))
     .orderBy(desc(transactions.date));
-  return rows.map((r) => ({ ...r, amount: n(r.amount) }));
+  return rows.map((r) => ({ ...r, amount: n(r.amount), categoryExcluded: !!r.categoryExcluded }));
 }
 
 export async function getStatement(ownerId: string, statementId: string) {
@@ -124,7 +127,7 @@ export async function getDashboard(ownerId: string, statementId?: string) {
   if (!stmt) return null;
 
   const txs = await getStatementTransactions(ownerId, stmt.id);
-  const flow = txs.filter((t) => !t.isInternal);
+  const flow = txs.filter((t) => !t.isInternal && !t.categoryExcluded);
 
   const ingresos = flow.filter((t) => t.direction === "in").reduce((a, t) => a + t.amount, 0);
   const gastos = flow.filter((t) => t.direction === "out").reduce((a, t) => a + t.amount, 0);

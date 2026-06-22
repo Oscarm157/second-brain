@@ -1,0 +1,1 @@
+ALTER TABLE "categories" ADD COLUMN "exclude_from_flow" boolean DEFAULT false NOT NULL;
