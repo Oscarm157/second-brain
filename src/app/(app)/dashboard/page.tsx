@@ -93,7 +93,6 @@ export default async function DashboardPage({
             <h2 className="inline-flex rounded-md bg-expense px-2.5 py-1 text-sm font-semibold text-white">
               Gasto por categoría
             </h2>
-            <p className="mt-1.5 text-xs text-faint">A dónde se fue el dinero este periodo</p>
           </div>
           <SpendDonut data={spendByCategory} total={kpis.gastos} />
         </section>
