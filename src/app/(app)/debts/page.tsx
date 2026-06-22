@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireUser } from "@/lib/session";
-import { listDebts, type DebtRow } from "@/lib/finanzas/data";
+import { listDebts, paidOnDebtsThisMonth, type DebtRow } from "@/lib/finanzas/data";
 import { money, shortDate } from "@/lib/finanzas/format";
 import { Empty } from "@/components/states";
 import { AddDebt } from "./add-debt";
@@ -18,7 +18,10 @@ const KIND_LABEL: Record<string, string> = {
 
 export default async function DebtsPage() {
   const me = await requireUser();
-  const debts = await listDebts(me.id);
+  const [debts, pagadoMes] = await Promise.all([
+    listDebts(me.id),
+    paidOnDebtsThisMonth(me.id),
+  ]);
 
   const open = debts.filter((d) => d.status === "open");
   const totalDebo = open.reduce((s, d) => s + Math.max(0, d.saldo), 0);
@@ -28,6 +31,21 @@ export default async function DebtsPage() {
     .filter((d) => d.proximoPago)
     .sort((a, b) => (a.proximoPago! < b.proximoPago! ? -1 : 1))
     .slice(0, 4);
+
+  // KPIs
+  const originalTotal = debts.reduce((s, d) => s + d.principal, 0);
+  const abonadoTotal = debts.reduce((s, d) => s + d.pagadoTotal, 0);
+  const progresoGlobal = originalTotal > 0 ? abonadoTotal / originalTotal : 0;
+
+  // Meses para liquidar al ritmo actual: la deuda más larga por mensualidad.
+  const mesesLibre = open
+    .filter((d) => d.monthlyPayment && d.monthlyPayment > 0 && d.saldo > 0)
+    .reduce((max, d) => Math.max(max, Math.ceil(d.saldo / d.monthlyPayment!)), 0);
+
+  // Deuda más cara por tasa.
+  const masCara = open
+    .filter((d) => d.interestRate && d.interestRate > 0)
+    .sort((a, b) => b.interestRate! - a.interestRate!)[0];
 
   return (
     <div className="space-y-8">
@@ -49,14 +67,67 @@ export default async function DebtsPage() {
         />
       ) : (
         <>
-          {/* Resumen */}
-          <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {/* Progreso global: el KPI estrella */}
+          <section className="overflow-hidden rounded-2xl bg-navy px-6 py-7 text-white sm:px-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="text-xs font-medium uppercase tracking-[0.14em] text-white/45">
+                  Progreso de tus deudas
+                </span>
+                <div className="mt-2 font-display text-5xl font-bold leading-none tabular-nums">
+                  {Math.round(progresoGlobal * 100)}%
+                </div>
+                <p className="mt-2 text-sm text-white/55">
+                  Has abonado{" "}
+                  <span className="font-medium tabular-nums text-white/85">
+                    {money(abonadoTotal)}
+                  </span>{" "}
+                  de{" "}
+                  <span className="font-medium tabular-nums text-white/85">
+                    {money(originalTotal)}
+                  </span>
+                </p>
+              </div>
+              <div className="sm:w-1/2">
+                <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-income"
+                    style={{ width: `${Math.round(progresoGlobal * 100)}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex justify-between text-xs text-white/45">
+                  <span>Pagado {money(abonadoTotal)}</span>
+                  <span>Falta {money(Math.max(0, originalTotal - abonadoTotal))}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* KPIs */}
+          <section className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             <SummaryCard label="Debes en total" value={money(totalDebo)} accent="text-navy" />
+            <SummaryCard
+              label="Pagado este mes"
+              value={money(pagadoMes)}
+              accent="text-income"
+            />
             <SummaryCard label="Comprometido al mes" value={money(mensual)} accent="text-navy" />
-            <SummaryCard label="Deudas activas" value={String(open.length)} accent="text-navy" />
+            <SummaryCard
+              label="Libre de deudas"
+              value={mesesLibre > 0 ? `~${mesesLibre} meses` : "—"}
+              sub={mesesLibre > 0 ? "al ritmo actual" : "captura mensualidades"}
+              accent="text-navy"
+            />
+            <SummaryCard
+              label="Deuda más cara"
+              value={masCara ? `${masCara.interestRate}%` : "—"}
+              sub={masCara ? masCara.counterparty : "sin tasa capturada"}
+              accent="text-navy"
+            />
             <SummaryCard
               label="Vencidas"
               value={String(vencidas.length)}
+              sub={`${open.length} activas`}
               accent={vencidas.length ? "text-alert" : "text-navy"}
             />
           </section>
@@ -93,16 +164,19 @@ export default async function DebtsPage() {
 function SummaryCard({
   label,
   value,
+  sub,
   accent,
 }: {
   label: string;
   value: string;
+  sub?: string;
   accent: string;
 }) {
   return (
     <div className="rounded-xl border border-line bg-white p-4">
       <p className="text-xs uppercase tracking-wide text-faint">{label}</p>
       <p className={`mt-1 font-display text-2xl font-bold tabular-nums ${accent}`}>{value}</p>
+      {sub ? <p className="mt-0.5 truncate text-xs text-faint">{sub}</p> : null}
     </div>
   );
 }

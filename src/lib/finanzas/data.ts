@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, isNull, isNotNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, isNull, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { categories, debts, scenarios, statements, transactions } from "@/lib/schema";
 
@@ -401,6 +401,24 @@ export async function listDebtOptions(ownerId: string): Promise<DebtOption[]> {
       and(eq(debts.ownerId, ownerId), eq(debts.type, "i_owe"), eq(debts.status, "open")),
     )
     .orderBy(debts.counterparty);
+}
+
+// Pagos del mes en curso sobre deudas (movimientos vinculados, tipo gasto).
+export async function paidOnDebtsThisMonth(ownerId: string): Promise<number> {
+  const now = new Date();
+  const firstOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const [r] = await db
+    .select({ total: sql<string>`coalesce(sum(${transactions.amount}), 0)` })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.ownerId, ownerId),
+        isNotNull(transactions.debtId),
+        eq(transactions.direction, "out"),
+        gte(transactions.date, firstOfMonth),
+      ),
+    );
+  return n(r?.total ?? null);
 }
 
 export type DebtLinkedTx = {
