@@ -226,18 +226,45 @@ export async function updateTransactionCategories(
   if (!parsed.success) return;
   const catId = categoryId && uuid.safeParse(categoryId).success ? categoryId : null;
 
+  let targetExcluded = false;
   if (catId) {
     const owned = await db
-      .select({ id: categories.id })
+      .select({ id: categories.id, excludeFromFlow: categories.excludeFromFlow })
       .from(categories)
       .where(and(eq(categories.id, catId), eq(categories.ownerId, me.id)));
     if (!owned[0]) return;
+    targetExcluded = owned[0].excludeFromFlow;
   }
 
   await db
     .update(transactions)
     .set({ categoryId: catId })
     .where(and(inArray(transactions.id, parsed.data), eq(transactions.ownerId, me.id)));
+
+  // Entrenar reglas con la selección (igual que al cambiar uno por uno), salvo cuando
+  // la categoría destino no cuenta en el flujo (ej. Omitido), para no auto-omitir de más.
+  if (catId && !targetExcluded) {
+    const moved = await db
+      .select({ counterparty: transactions.counterparty, description: transactions.description })
+      .from(transactions)
+      .where(and(inArray(transactions.id, parsed.data), eq(transactions.ownerId, me.id)));
+    const names = new Set<string>();
+    for (const m of moved) {
+      const nm = cleanName(m.counterparty, m.description);
+      if (nm) names.add(nm);
+    }
+    for (const name of names) {
+      const exists = await db
+        .select({ id: categoryRules.id })
+        .from(categoryRules)
+        .where(and(eq(categoryRules.ownerId, me.id), eq(categoryRules.pattern, name)));
+      if (exists[0]) {
+        await db.update(categoryRules).set({ categoryId: catId, source: "manual" }).where(eq(categoryRules.id, exists[0].id));
+      } else {
+        await db.insert(categoryRules).values({ ownerId: me.id, pattern: name, categoryId: catId, source: "manual" });
+      }
+    }
+  }
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");

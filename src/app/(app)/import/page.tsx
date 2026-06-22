@@ -9,6 +9,8 @@ import { StatusChip } from "@/components/status-chip";
 import { ImportForm } from "./import-form";
 
 export const dynamic = "force-dynamic";
+// El import parsea, categoriza con IA e inserta cientos de filas; dale margen de tiempo.
+export const maxDuration = 60;
 
 export default async function ImportPage() {
   const me = await requireUser();
