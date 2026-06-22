@@ -1,6 +1,6 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, isNull, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { categories, scenarios, statements, transactions } from "@/lib/schema";
+import { categories, debts, scenarios, statements, transactions } from "@/lib/schema";
 
 const n = (v: string | null) => (v ? parseFloat(v) : 0);
 
@@ -18,6 +18,7 @@ export type TxRow = {
   categoryName: string | null;
   categoryColor: string | null;
   categoryExcluded: boolean;
+  debtId: string | null;
   currency: string;
 };
 
@@ -57,6 +58,7 @@ export async function getStatementTransactions(
       categoryName: categories.name,
       categoryColor: categories.color,
       categoryExcluded: categories.excludeFromFlow,
+      debtId: transactions.debtId,
       currency: transactions.currency,
     })
     .from(transactions)
@@ -88,6 +90,7 @@ export async function getTransactions(
       categoryName: categories.name,
       categoryColor: categories.color,
       categoryExcluded: categories.excludeFromFlow,
+      debtId: transactions.debtId,
       currency: transactions.currency,
     })
     .from(transactions)
@@ -280,4 +283,228 @@ export async function getDashboard(ownerId: string, statementId?: string) {
     recent: flow.slice(0, 12),
     counts: { total: txs.length, internos, flujo: flow.length },
   };
+}
+
+// ── Deudas ────────────────────────────────────────────────────────────────
+
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+
+// Hoy como YYYY-MM-DD (zona del server; suficiente para vencimientos).
+function todayISO(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate(),
+  ).padStart(2, "0")}`;
+}
+
+// Próxima ocurrencia de un día de pago (este mes si aún no pasa, si no el siguiente).
+function nextPaymentDate(day: number): string {
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth();
+  if (day < now.getDate()) {
+    month += 1;
+    if (month > 11) {
+      month = 0;
+      year += 1;
+    }
+  }
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const dd = Math.min(day, lastDay);
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
+
+export type DebtRow = {
+  id: string;
+  kind: string | null;
+  counterparty: string;
+  principal: number;
+  saldo: number;
+  pagadoTotal: number;
+  progreso: number;
+  monthlyPayment: number | null;
+  paymentDay: number | null;
+  interestRate: number | null;
+  termMonths: number | null;
+  startDate: string | null;
+  dueDate: string | null;
+  description: string | null;
+  status: "open" | "paid";
+  proximoPago: string | null;
+  vencida: boolean;
+  linkedCount: number;
+};
+
+export async function listDebts(ownerId: string): Promise<DebtRow[]> {
+  const rows = await db
+    .select()
+    .from(debts)
+    .where(and(eq(debts.ownerId, ownerId), eq(debts.type, "i_owe")))
+    .orderBy(desc(debts.createdAt));
+
+  const agg = await db
+    .select({
+      debtId: transactions.debtId,
+      paid: sql<string>`coalesce(sum(case when ${transactions.direction} = 'out' then ${transactions.amount} else 0 end), 0)`,
+      borrowed: sql<string>`coalesce(sum(case when ${transactions.direction} = 'in' then ${transactions.amount} else 0 end), 0)`,
+      count: sql<number>`count(*)`,
+    })
+    .from(transactions)
+    .where(and(eq(transactions.ownerId, ownerId), isNotNull(transactions.debtId)))
+    .groupBy(transactions.debtId);
+
+  const aggMap = new Map(agg.map((a) => [a.debtId, a]));
+  const today = todayISO();
+
+  return rows.map((d) => {
+    const a = aggMap.get(d.id);
+    const principal = n(d.principal);
+    const balance0 = n(d.balance);
+    const paid = a ? n(a.paid) : 0;
+    const borrowed = a ? n(a.borrowed) : 0;
+    const saldo = balance0 - paid + borrowed;
+    const pagadoTotal = principal - balance0 + paid;
+    const proximoPago = d.paymentDay
+      ? nextPaymentDate(d.paymentDay)
+      : d.dueDate ?? null;
+    return {
+      id: d.id,
+      kind: d.kind,
+      counterparty: d.counterparty,
+      principal,
+      saldo,
+      pagadoTotal,
+      progreso: principal > 0 ? clamp01(pagadoTotal / principal) : 0,
+      monthlyPayment: d.monthlyPayment ? n(d.monthlyPayment) : null,
+      paymentDay: d.paymentDay,
+      interestRate: d.interestRate ? n(d.interestRate) : null,
+      termMonths: d.termMonths,
+      startDate: d.startDate,
+      dueDate: d.dueDate,
+      description: d.description,
+      status: d.status,
+      proximoPago,
+      vencida: d.status === "open" && saldo > 0 && !!d.dueDate && d.dueDate < today,
+      linkedCount: a ? Number(a.count) : 0,
+    };
+  });
+}
+
+export type DebtOption = { id: string; counterparty: string };
+
+// Deudas activas para el selector inline en Movimientos.
+export async function listDebtOptions(ownerId: string): Promise<DebtOption[]> {
+  return db
+    .select({ id: debts.id, counterparty: debts.counterparty })
+    .from(debts)
+    .where(
+      and(eq(debts.ownerId, ownerId), eq(debts.type, "i_owe"), eq(debts.status, "open")),
+    )
+    .orderBy(debts.counterparty);
+}
+
+export type DebtLinkedTx = {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  direction: "in" | "out";
+};
+
+export async function getDebt(ownerId: string, debtId: string) {
+  const [d] = await db
+    .select()
+    .from(debts)
+    .where(and(eq(debts.id, debtId), eq(debts.ownerId, ownerId)));
+  if (!d) return null;
+
+  const linked = await db
+    .select({
+      id: transactions.id,
+      date: transactions.date,
+      description: transactions.description,
+      amount: transactions.amount,
+      direction: transactions.direction,
+    })
+    .from(transactions)
+    .where(and(eq(transactions.ownerId, ownerId), eq(transactions.debtId, debtId)))
+    .orderBy(desc(transactions.date));
+
+  const movimientos: DebtLinkedTx[] = linked.map((t) => ({
+    id: t.id,
+    date: t.date,
+    description: t.description,
+    amount: n(t.amount),
+    direction: t.direction,
+  }));
+
+  const paid = movimientos
+    .filter((m) => m.direction === "out")
+    .reduce((s, m) => s + m.amount, 0);
+  const borrowed = movimientos
+    .filter((m) => m.direction === "in")
+    .reduce((s, m) => s + m.amount, 0);
+  const principal = n(d.principal);
+  const balance0 = n(d.balance);
+  const saldo = balance0 - paid + borrowed;
+  const pagadoTotal = principal - balance0 + paid;
+
+  return {
+    debt: {
+      id: d.id,
+      kind: d.kind,
+      counterparty: d.counterparty,
+      principal,
+      balance: balance0,
+      monthlyPayment: d.monthlyPayment ? n(d.monthlyPayment) : null,
+      paymentDay: d.paymentDay,
+      interestRate: d.interestRate ? n(d.interestRate) : null,
+      termMonths: d.termMonths,
+      startDate: d.startDate,
+      dueDate: d.dueDate,
+      description: d.description,
+      status: d.status,
+    },
+    movimientos,
+    saldo,
+    pagadoTotal,
+    progreso: principal > 0 ? clamp01(pagadoTotal / principal) : 0,
+  };
+}
+
+// Movimientos sin deuda asignada, para el buscador del detalle.
+export async function listUnassignedDebtTx(
+  ownerId: string,
+  q?: string,
+): Promise<DebtLinkedTx[]> {
+  const filters = [
+    eq(transactions.ownerId, ownerId),
+    isNull(transactions.debtId),
+    eq(transactions.isInternal, false),
+  ];
+  if (q && q.trim()) {
+    const like = `%${q.trim()}%`;
+    filters.push(
+      or(ilike(transactions.description, like), ilike(transactions.counterparty, like))!,
+    );
+  }
+  const rows = await db
+    .select({
+      id: transactions.id,
+      date: transactions.date,
+      description: transactions.description,
+      amount: transactions.amount,
+      direction: transactions.direction,
+    })
+    .from(transactions)
+    .where(and(...filters))
+    .orderBy(desc(transactions.date))
+    .limit(40);
+  return rows.map((t) => ({
+    id: t.id,
+    date: t.date,
+    description: t.description,
+    amount: n(t.amount),
+    direction: t.direction,
+  }));
 }

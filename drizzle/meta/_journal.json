@@ -29,6 +29,13 @@
       "when": 1782111274187,
       "tag": "0003_scenarios",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782148126513,
+      "tag": "0004_square_harry_osborn",
+      "breakpoints": true
     }
   ]
 }

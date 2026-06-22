@@ -9,16 +9,20 @@ import { updateTransactionCategories } from "@/app/(app)/import/actions";
 import { money, parseDetail, shortDate } from "@/lib/finanzas/format";
 import { cn } from "@/lib/utils";
 import { CategorySelect } from "@/components/category-select";
+import { DebtSelect } from "@/components/debt-select";
 import { categoryOptionNodes, type CatOpt } from "@/components/category-options";
+import type { DebtOption } from "@/lib/finanzas/data";
 
 type Dir = "all" | "in" | "out";
 
 export function TransactionsTable({
   rows,
   options,
+  debtOptions,
 }: {
   rows: TxRow[];
   options: CatOpt[];
+  debtOptions: DebtOption[];
 }) {
   const [dir, setDir] = useState<Dir>("all");
   const [cat, setCat] = useState<string>("all");
@@ -78,6 +82,8 @@ export function TransactionsTable({
   }
 
   const net = filtered.reduce((a, t) => a + (t.direction === "in" ? t.amount : -t.amount), 0);
+  const showDebt = debtOptions.length > 0;
+  const totalCols = showDebt ? 6 : 5;
 
   const dirBtn = (value: Dir, label: string) => (
     <button
@@ -173,6 +179,7 @@ export function TransactionsTable({
                 <th className="px-5 py-3 font-medium">Fecha</th>
                 <th className="px-5 py-3 font-medium">Movimiento</th>
                 <th className="px-5 py-3 font-medium">Categoría</th>
+                {showDebt && <th className="px-5 py-3 font-medium">Deuda</th>}
                 <th className="px-5 py-3 text-right font-medium">Monto</th>
               </tr>
             </thead>
@@ -227,6 +234,11 @@ export function TransactionsTable({
                     <td className="px-5 py-2.5">
                       <CategorySelect txId={t.id} categoryId={t.categoryId} options={options} />
                     </td>
+                    {showDebt && (
+                      <td className="px-5 py-2.5">
+                        <DebtSelect txId={t.id} debtId={t.debtId} options={debtOptions} />
+                      </td>
+                    )}
                     <td
                       className={cn(
                         "whitespace-nowrap px-5 py-2.5 text-right font-medium tabular-nums",
@@ -240,7 +252,7 @@ export function TransactionsTable({
                   {open.has(t.id) && (
                     <tr className="bg-surface/60">
                       <td colSpan={2} />
-                      <td colSpan={3} className="px-5 pb-3 pt-0">
+                      <td colSpan={totalCols - 2} className="px-5 pb-3 pt-0">
                         <div className="rounded-lg border border-line bg-white p-4 text-xs">
                           <p className="mb-3 font-medium text-navy">{t.description}</p>
                           {(() => {
@@ -278,7 +290,7 @@ export function TransactionsTable({
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-ink">
+                  <td colSpan={totalCols} className="px-5 py-10 text-center text-sm text-ink">
                     Ningún movimiento con esos filtros.
                   </td>
                 </tr>

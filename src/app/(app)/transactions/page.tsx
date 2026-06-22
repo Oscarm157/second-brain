@@ -1,7 +1,12 @@
 import Link from "next/link";
 
 import { requireUser } from "@/lib/session";
-import { getTransactions, listCategories, listStatements } from "@/lib/finanzas/data";
+import {
+  getTransactions,
+  listCategories,
+  listDebtOptions,
+  listStatements,
+} from "@/lib/finanzas/data";
 import { period } from "@/lib/finanzas/format";
 import { Empty } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -39,9 +44,10 @@ export default async function TransactionsPage({
   }
 
   const current = statements.find((s) => s.id === sp.statement) ?? statements[0];
-  const [rows, cats] = await Promise.all([
+  const [rows, cats, debtOptions] = await Promise.all([
     getTransactions(me.id, current.id),
     listCategories(me.id),
+    listDebtOptions(me.id),
   ]);
 
   const options = cats.map((c) => ({
@@ -66,7 +72,7 @@ export default async function TransactionsPage({
         <PeriodSelector statements={statements} current={current.id} basePath="/transactions" />
       </header>
 
-      <TransactionsTable rows={rows} options={options} />
+      <TransactionsTable rows={rows} options={options} debtOptions={debtOptions} />
     </div>
   );
 }

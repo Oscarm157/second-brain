@@ -5,6 +5,7 @@ import {
   boolean,
   timestamp,
   numeric,
+  integer,
   date,
   unique,
   jsonb,
@@ -147,6 +148,10 @@ export const transactions = pgTable("transactions", {
   categoryId: uuid("category_id").references(() => categories.id, {
     onDelete: "set null",
   }),
+  // Pago/préstamo asignado a una deuda (vínculo manual). Aparte de la categoría.
+  debtId: uuid("debt_id").references((): AnyPgColumn => debts.id, {
+    onDelete: "set null",
+  }),
   currency: text("currency").notNull().default("MXN"),
   fxRate: numeric("fx_rate", { precision: 12, scale: 6 }),
   fxAmount: numeric("fx_amount", { precision: 14, scale: 2 }),
@@ -159,17 +164,27 @@ export type Transaction = typeof transactions.$inferSelect;
 
 export type DebtType = "i_owe" | "owed_to_me";
 export type DebtStatus = "open" | "paid";
+export type DebtKind = "tarjeta" | "prestamo" | "persona" | "otro";
 
-// Préstamos y deudas que Oscar lleva aparte de los movimientos del banco.
+// Deudas que Oscar mapea. El saldo se deriva: `balance` es el saldo de arranque
+// (al crear); los movimientos del banco vinculados por `transactions.debtId` lo
+// ajustan (gastos = pagos, ingresos = préstamos nuevos). `principal` es el monto
+// original total, para medir avance (principal − balance = ya pagado antes).
 export const debts = pgTable("debts", {
   id: uuid("id").primaryKey().defaultRandom(),
   ownerId: uuid("owner_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   type: text("type").$type<DebtType>().notNull(),
+  kind: text("kind").$type<DebtKind>(),
   counterparty: text("counterparty").notNull(),
   principal: numeric("principal", { precision: 14, scale: 2 }).notNull(),
   balance: numeric("balance", { precision: 14, scale: 2 }).notNull(),
+  monthlyPayment: numeric("monthly_payment", { precision: 14, scale: 2 }),
+  paymentDay: integer("payment_day"),
+  interestRate: numeric("interest_rate", { precision: 5, scale: 2 }),
+  termMonths: integer("term_months"),
+  startDate: date("start_date"),
   description: text("description"),
   status: text("status").$type<DebtStatus>().notNull().default("open"),
   dueDate: date("due_date"),
