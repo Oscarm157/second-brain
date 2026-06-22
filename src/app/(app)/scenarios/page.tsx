@@ -62,13 +62,13 @@ export default async function ScenariosPage({
       <ScenarioBoard
         statementId={data.statement.id}
         income={data.incomeByCategory.map((c) => ({
-          key: c.id,
+          key: `in:${c.id}`,
           name: c.name,
           color: c.color,
           real: c.total,
         }))}
         expense={data.spendByCategory.map((c) => ({
-          key: c.id,
+          key: `out:${c.id}`,
           name: c.name,
           color: c.color,
           real: c.total,

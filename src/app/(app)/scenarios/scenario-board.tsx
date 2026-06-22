@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveScenario, deleteScenario } from "./actions";
 
+const PCTS = Array.from({ length: 21 }, (_, i) => i * 10); // 0,10,...,200
+
 type Item = { key: string; name: string; color: string; real: number };
 type Adjustment = { key: string; included: boolean; amount: number };
 type Saved = { id: string; name: string; adjustments: Adjustment[] };
@@ -152,6 +154,27 @@ export function ScenarioBoard({
                 >
                   ½
                 </button>
+                <select
+                  value={(() => {
+                    const p = i.real > 0 ? Math.round((a.amount / i.real) * 100) : 0;
+                    return p % 10 === 0 && p >= 0 && p <= 200 ? String(p) : "";
+                  })()}
+                  onChange={(e) =>
+                    patch(i.key, {
+                      amount: Math.round(((i.real * Number(e.target.value)) / 100) * 100) / 100,
+                      included: true,
+                    })
+                  }
+                  aria-label="Porcentaje del real"
+                  className="h-7 rounded-md border border-line bg-white px-1 text-xs text-ink outline-none focus-visible:border-brand"
+                >
+                  <option value="">%</option>
+                  {PCTS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}%
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
                   onClick={() => patch(i.key, { amount: i.real, included: true })}
