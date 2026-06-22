@@ -7,7 +7,7 @@ import { saveDebt } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type State = { error: string } | null;
+type State = { error: string } | { ok: true } | null;
 
 export type DebtFormValues = {
   id: string;
@@ -62,17 +62,19 @@ export function DebtForm({
   const formRef = useRef<HTMLFormElement>(null);
   const editing = !!debt;
   const [state, action, pending] = useActionState<State, FormData>(
-    async (_prev, formData) => (await saveDebt(formData)) ?? null,
+    async (_prev, formData) => (await saveDebt(formData)) ?? { ok: true },
     null,
   );
 
   useEffect(() => {
-    if (state?.error) toast.error(state.error);
-    else if (state === null) {
-      toast.success(editing ? "Deuda actualizada." : "Deuda agregada.");
-      if (!editing) formRef.current?.reset();
-      onDone?.();
+    if (!state) return;
+    if ("error" in state) {
+      toast.error(state.error);
+      return;
     }
+    toast.success(editing ? "Deuda actualizada." : "Deuda agregada.");
+    if (!editing) formRef.current?.reset();
+    onDone?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
