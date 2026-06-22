@@ -75,11 +75,6 @@ export default async function DashboardPage({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-line bg-white p-5">
-          <h2 className="mb-4 text-sm font-semibold text-navy">Gasto por categoría</h2>
-          <SpendDonut data={spendByCategory} total={kpis.gastos} />
-        </section>
-
-        <section className="rounded-xl border border-line bg-white p-5">
           <h2 className="mb-4 text-sm font-semibold text-navy">Ingreso por categoría</h2>
           <SpendDonut
             data={incomeByCategory}
@@ -87,6 +82,11 @@ export default async function DashboardPage({
             label="Ingreso"
             emptyText="Sin ingresos en este periodo."
           />
+        </section>
+
+        <section className="rounded-xl border border-line bg-white p-5">
+          <h2 className="mb-4 text-sm font-semibold text-navy">Gasto por categoría</h2>
+          <SpendDonut data={spendByCategory} total={kpis.gastos} />
         </section>
       </div>
 
