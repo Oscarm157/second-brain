@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { updateTransactionCategory } from "../actions";
+import { updateTransactionCategory } from "@/app/(app)/import/actions";
 import { cn } from "@/lib/utils";
 
 type Option = { id: string; name: string };

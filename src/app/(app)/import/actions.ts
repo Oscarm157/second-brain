@@ -209,6 +209,8 @@ export async function updateTransactionCategory(txId: string, categoryId: string
       await db.insert(categoryRules).values({ ownerId: me.id, pattern: name, categoryId: catId, source: "manual" });
     }
   }
+  revalidatePath("/transactions");
+  revalidatePath("/dashboard");
   revalidatePath("/import", "layout");
 }
 

@@ -64,6 +64,30 @@ export async function getStatementTransactions(
   return rows.map((r) => ({ ...r, amount: n(r.amount) }));
 }
 
+// Movimientos de flujo (sin cajitas internas) para categorizar manualmente.
+export async function getTransactions(ownerId: string): Promise<TxRow[]> {
+  const rows = await db
+    .select({
+      id: transactions.id,
+      date: transactions.date,
+      description: transactions.description,
+      counterparty: transactions.counterparty,
+      amount: transactions.amount,
+      direction: transactions.direction,
+      kind: transactions.kind,
+      isInternal: transactions.isInternal,
+      categoryId: transactions.categoryId,
+      categoryName: categories.name,
+      categoryColor: categories.color,
+      currency: transactions.currency,
+    })
+    .from(transactions)
+    .leftJoin(categories, eq(transactions.categoryId, categories.id))
+    .where(and(eq(transactions.ownerId, ownerId), eq(transactions.isInternal, false)))
+    .orderBy(desc(transactions.date));
+  return rows.map((r) => ({ ...r, amount: n(r.amount) }));
+}
+
 export async function getStatement(ownerId: string, statementId: string) {
   const rows = await db
     .select()
@@ -116,6 +140,22 @@ export async function getDashboard(ownerId: string, statementId?: string) {
     .sort((a, b) => b.total - a.total)
     .map((c) => ({ ...c, pct: gastos ? Math.round((c.total / gastos) * 100) : 0 }));
 
+  // Ingreso por categoría (solo entradas no internas).
+  const inByCat = new Map<string, { name: string; color: string; total: number }>();
+  for (const t of flow.filter((t) => t.direction === "in")) {
+    const key = t.categoryId ?? "none";
+    const cur = inByCat.get(key) ?? {
+      name: t.categoryName ?? "Sin categoría",
+      color: t.categoryColor ?? "#cbd2dd",
+      total: 0,
+    };
+    cur.total += t.amount;
+    inByCat.set(key, cur);
+  }
+  const incomeByCategory = [...inByCat.values()]
+    .sort((a, b) => b.total - a.total)
+    .map((c) => ({ ...c, pct: ingresos ? Math.round((c.total / ingresos) * 100) : 0 }));
+
   // Cashflow por día (entradas vs salidas, sin internos).
   const byDay = new Map<string, { date: string; in: number; out: number }>();
   for (const t of flow) {
@@ -140,6 +180,7 @@ export async function getDashboard(ownerId: string, statementId?: string) {
     },
     kpis: { ingresos, gastos, balance: ingresos - gastos, saldoFinal: n(stmt.saldoFinal) },
     spendByCategory,
+    incomeByCategory,
     cashflow,
     recent: flow.slice(0, 12),
     counts: { total: txs.length, internos, flujo: flow.length },

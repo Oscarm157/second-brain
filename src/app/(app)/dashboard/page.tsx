@@ -46,7 +46,8 @@ export default async function DashboardPage({
   const data = await getDashboard(me.id, sp.statement);
   if (!data) redirect("/dashboard");
 
-  const { statement, kpis, spendByCategory, cashflow, recent, counts } = data;
+  const { statement, kpis, spendByCategory, incomeByCategory, cashflow, recent, counts } =
+    data;
 
   return (
     <div className="space-y-8">
@@ -79,22 +80,32 @@ export default async function DashboardPage({
         </section>
 
         <section className="rounded-xl border border-line bg-white p-5">
-          <div className="mb-4 flex items-center gap-4">
-            <h2 className="text-sm font-semibold text-navy">Entradas y salidas</h2>
-            <div className="flex items-center gap-3 text-xs text-ink">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-income" />
-                Entradas
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-brand" />
-                Salidas
-              </span>
-            </div>
-          </div>
-          <CashflowChart data={cashflow} />
+          <h2 className="mb-4 text-sm font-semibold text-navy">Ingreso por categoría</h2>
+          <SpendDonut
+            data={incomeByCategory}
+            total={kpis.ingresos}
+            label="Ingreso"
+            emptyText="Sin ingresos en este periodo."
+          />
         </section>
       </div>
+
+      <section className="rounded-xl border border-line bg-white p-5">
+        <div className="mb-4 flex items-center gap-4">
+          <h2 className="text-sm font-semibold text-navy">Entradas y salidas</h2>
+          <div className="flex items-center gap-3 text-xs text-ink">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-income" />
+              Entradas
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-brand" />
+              Salidas
+            </span>
+          </div>
+        </div>
+        <CashflowChart data={cashflow} />
+      </section>
 
       <section className="rounded-xl border border-line bg-white">
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">

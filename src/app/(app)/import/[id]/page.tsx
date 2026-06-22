@@ -11,7 +11,7 @@ import {
 import { money, period, shortDate } from "@/lib/finanzas/format";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/status-chip";
-import { CategorySelect } from "./category-select";
+import { CategorySelect } from "@/components/category-select";
 import { ReviewActions } from "./review-actions";
 
 export const dynamic = "force-dynamic";

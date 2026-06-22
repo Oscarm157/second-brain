@@ -7,13 +7,23 @@ import { money } from "@/lib/finanzas/format";
 
 type Slice = { name: string; color: string; total: number; pct: number };
 
-export function SpendDonut({ data, total }: { data: Slice[]; total: number }) {
+export function SpendDonut({
+  data,
+  total,
+  label = "Gasto",
+  emptyText = "Sin gastos en este periodo.",
+}: {
+  data: Slice[];
+  total: number;
+  label?: string;
+  emptyText?: string;
+}) {
   const reduce = useReducedMotion();
 
   if (data.length === 0) {
     return (
       <div className="flex h-full min-h-48 items-center justify-center text-sm text-ink">
-        Sin gastos en este periodo.
+        {emptyText}
       </div>
     );
   }
@@ -41,7 +51,7 @@ export function SpendDonut({ data, total }: { data: Slice[]; total: number }) {
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xs uppercase tracking-wide text-faint">Gasto</span>
+          <span className="text-xs uppercase tracking-wide text-faint">{label}</span>
           <span className="font-display text-lg font-bold tabular-nums text-navy">
             {money(total)}
           </span>
