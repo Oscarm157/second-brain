@@ -222,3 +222,62 @@ export const items = pgTable("items", {
 });
 
 export type Item = typeof items.$inferSelect;
+
+// ------- Módulo Hábitos -------
+
+export type HabitFrequency = "daily" | "weekly" | "custom";
+
+export const habits = pgTable("habits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  icon: text("icon").notNull().default("check"),
+  color: text("color").notNull().default("#34d399"),
+  frequency: text("frequency").$type<HabitFrequency>().notNull().default("daily"),
+  targetPerWeek: integer("target_per_week"),
+  weekdays: jsonb("weekdays").$type<number[]>(),
+  targetPerDay: integer("target_per_day").notNull().default(1),
+  gracePerWeek: integer("grace_per_week").notNull().default(1),
+  position: integer("position").notNull().default(0),
+  archived: boolean("archived").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type Habit = typeof habits.$inferSelect;
+
+export const habitEntries = pgTable(
+  "habit_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    habitId: uuid("habit_id")
+      .references(() => habits.id, { onDelete: "cascade" })
+      .notNull(),
+    date: date("date").notNull(),
+    count: integer("count").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [unique("habit_entries_habit_date_unique").on(t.habitId, t.date)],
+);
+
+export type HabitEntry = typeof habitEntries.$inferSelect;
+
+export const habitAchievements = pgTable(
+  "habit_achievements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    habitId: uuid("habit_id").references(() => habits.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique("habit_achievements_owner_key_unique").on(t.ownerId, t.key)],
+);
+
+export type HabitAchievement = typeof habitAchievements.$inferSelect;

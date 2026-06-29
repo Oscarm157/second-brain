@@ -1,0 +1,2 @@
+ALTER TABLE "habit_achievements" DROP CONSTRAINT "habit_achievements_owner_habit_key_unique";--> statement-breakpoint
+ALTER TABLE "habit_achievements" ADD CONSTRAINT "habit_achievements_owner_key_unique" UNIQUE("owner_id","key");

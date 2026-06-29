@@ -9,6 +9,7 @@ import {
   Landmark,
   Tags,
   SlidersHorizontal,
+  Flame,
   LogOut,
 } from "lucide-react";
 
@@ -16,6 +17,7 @@ import { logout } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 
 const nav = [
+  { href: "/habitos", label: "Hábitos", icon: Flame },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/transactions", label: "Movimientos", icon: ArrowLeftRight },
   { href: "/scenarios", label: "Escenarios", icon: SlidersHorizontal },

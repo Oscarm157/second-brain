@@ -86,3 +86,25 @@
     color: var(--foreground);
   }
 }
+
+/* Tokens dark del módulo Hábitos (aditivos, no tocan el :root claro) */
+.dark {
+  --h-canvas: #141320;
+  --h-canvas-alt: #191826;
+  --h-surface: #1f1e30;
+  --h-surface-2: #29273f;
+  --h-border: #322f4a;
+  --h-text: #f7f7ff;
+  --h-text-secondary: #a5a3b8;
+  --h-text-faint: #6f6d82;
+  --h-xp: #a6ff00;
+  --h-streak: #ff7a1a;
+  --h-emerald: #34d399;
+  --h-cyan: #22d3ee;
+  --h-blue: #60a5fa;
+  --h-violet: #a78bfa;
+  --h-pink: #f472b6;
+  --h-orange: #fb923c;
+  --h-amber: #fbbf24;
+  --h-lime: #a3e635;
+}
