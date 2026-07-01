@@ -295,6 +295,7 @@ export const personalTasks = pgTable("personal_tasks", {
     .notNull(),
   title: text("title").notNull(),
   notes: text("notes"),
+  dueDate: date("due_date"),
   status: text("status").$type<PersonalTaskStatus>().notNull().default("todo"),
   priority: integer("priority").notNull().default(0),
   position: integer("position").notNull().default(0),

@@ -36,6 +36,7 @@ const updateSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   notes: z.string().trim().max(2000).optional(),
   priority: z.coerce.number().int().min(0).max(2).optional(),
+  dueDate: z.string().date().nullable().optional(),
 });
 
 export async function updateTask(input: {
@@ -43,6 +44,7 @@ export async function updateTask(input: {
   title?: string;
   notes?: string;
   priority?: number;
+  dueDate?: string | null;
 }): Promise<void> {
   const me = await requireUser();
   const parsed = updateSchema.safeParse(input);
