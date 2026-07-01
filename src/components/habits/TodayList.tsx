@@ -20,12 +20,12 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
   }
 
   return (
-    <section className="rounded-2xl border border-[#322f4a] bg-[#1f1e30] p-5">
+    <section className="rounded-2xl border border-[var(--h-border)] bg-[var(--h-surface)] p-5">
       <div className="mb-4 flex items-baseline justify-between">
-        <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-[#6f6d82]">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-[var(--h-text-faint)]">
           Hoy
         </h2>
-        <span className="font-display text-sm tabular-nums text-[#a5a3b8]">
+        <span className="font-display text-sm tabular-nums text-[var(--h-text-secondary)]">
           {done.length}/{habits.length}
         </span>
       </div>
@@ -39,7 +39,7 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
               animate={{ opacity: 1, x: 0 }}
               exit={reduced ? {} : { opacity: 0, x: 8 }}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-              style={{ background: "#29273f" }}
+              style={{ background: "var(--h-surface-2)" }}
             >
               <button
                 onClick={() => toggle(h.id)}
@@ -54,7 +54,7 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
               >
                 <span style={{ color: h.color }}>✦</span>
               </div>
-              <span className="flex-1 text-sm text-[#f7f7ff]">{h.name}</span>
+              <span className="flex-1 text-sm text-[var(--h-text)]">{h.name}</span>
             </motion.li>
           ))}
         </AnimatePresence>
@@ -67,7 +67,7 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
               className="flex size-6 shrink-0 items-center justify-center rounded-full"
               style={{ background: h.color }}
             >
-              <span className="text-xs text-[#141320]">✓</span>
+              <span className="text-xs text-[var(--h-on-accent)]">✓</span>
             </div>
             <div
               className="flex size-6 shrink-0 items-center justify-center rounded-lg text-sm"
@@ -75,7 +75,7 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
             >
               <span style={{ color: h.color }}>✦</span>
             </div>
-            <span className="flex-1 text-sm line-through text-[#6f6d82]">{h.name}</span>
+            <span className="flex-1 text-sm line-through text-[var(--h-text-faint)]">{h.name}</span>
           </li>
         ))}
       </ul>

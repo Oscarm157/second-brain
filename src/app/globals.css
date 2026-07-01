@@ -2,10 +2,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Tema LIGHT (default). Toda superficie/texto/borde sale de un token; el switch
+   a dark solo cambia los valores en `.dark`. Nada de hex crudo en componentes.
+   ────────────────────────────────────────────────────────────────────────── */
 :root {
   --radius: 0.75rem;
 
-  /* Superficies */
+  /* Superficies (shadcn) */
   --background: #ffffff;
   --foreground: #16203a;
   --card: #ffffff;
@@ -31,6 +35,61 @@
   --border: #e7ecf4;
   --input: #e7ecf4;
   --ring: #2456e6;
+
+  /* Tokens semánticos del proyecto (var-backed para que conmuten en dark) */
+  --navy: #16203a;
+  --ink: #5b6678;
+  --faint: #8a94a6;
+  --brand: #2456e6;
+  --brand-hover: #1b46c9;
+  --brand-soft: #eef3fd;
+  --line: #e7ecf4;
+  --surface: #f6f8fb;
+  --income: #0f9d58;
+  --expense: #e85d2f;
+  --warn: #e8a33d;
+  --alert: #d23f3f;
+
+  /* Panel "hero" oscuro de finanzas (invierte: oscuro en light, elevado en dark) */
+  --hero: #16203a;
+  --hero-foreground: #ffffff;
+  /* Acentos del hero (invariantes: el panel es siempre oscuro en ambos temas) */
+  --hero-positive: #34d27b;
+  --hero-negative: #ff7a7a;
+  --hero-in: #0f9d58;
+  --hero-out: #3b6dff;
+
+  /* Texto sobre relleno saturado income/expense (invierte: blanco en light, ink oscuro en dark) */
+  --income-foreground: #ffffff;
+  --expense-foreground: #ffffff;
+
+  /* Scrim de overlays/modales */
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  /* Familia gamificada (--h-*) en LIGHT. Los 8 acentos por hábito son dato en
+     DB y no cambian por tema; viven aquí y se heredan dentro de .dark. */
+  --h-canvas: #f6f7f9;
+  --h-canvas-alt: #eef1f6;
+  --h-surface: #ffffff;
+  --h-surface-2: #f6f8fb;
+  --h-border: #e7ecf4;
+  --h-text: #16203a;
+  --h-text-secondary: #5b6678;
+  --h-text-faint: #8a94a6;
+  --h-xp: #4d7c0f;
+  --h-xp-ink: #ffffff;
+  --h-streak: #e2620a;
+  --h-emerald: #34d399;
+  --h-cyan: #22d3ee;
+  --h-blue: #60a5fa;
+  --h-violet: #a78bfa;
+  --h-pink: #f472b6;
+  --h-orange: #fb923c;
+  --h-amber: #fbbf24;
+  --h-lime: #a3e635;
+  /* Ink para texto sobre un acento saturado (color de hábito, --h-blue, etc.). Invariante:
+     esos rellenos no cambian por tema, así que el ink tampoco. */
+  --h-on-accent: #0b1020;
 }
 
 @theme inline {
@@ -53,19 +112,24 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Tokens semánticos del proyecto */
-  --color-navy: #16203a;
-  --color-ink: #5b6678;
-  --color-faint: #8a94a6;
-  --color-brand: #2456e6;
-  --color-brand-hover: #1b46c9;
-  --color-brand-soft: #eef3fd;
-  --color-line: #e7ecf4;
-  --color-surface: #f6f8fb;
-  --color-income: #0f9d58;
-  --color-expense: #e85d2f;
-  --color-warn: #e8a33d;
-  --color-alert: #d23f3f;
+  /* Tokens semánticos del proyecto (var-backed) */
+  --color-navy: var(--navy);
+  --color-ink: var(--ink);
+  --color-faint: var(--faint);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --color-warn: var(--warn);
+  --color-alert: var(--alert);
+  --color-hero: var(--hero);
+  --color-hero-foreground: var(--hero-foreground);
+  --color-income-foreground: var(--income-foreground);
+  --color-expense-foreground: var(--expense-foreground);
+  --color-overlay: var(--overlay);
 
   --font-sans: var(--font-inter);
   --font-display: var(--font-display);
@@ -87,8 +151,55 @@
   }
 }
 
-/* Tokens dark del módulo Hábitos (aditivos, no tocan el :root claro) */
+/* ──────────────────────────────────────────────────────────────────────────
+   Tema DARK (override). Solo cambian valores; los 8 acentos por hábito se
+   heredan de :root. `navy` aquí es texto claro; los rellenos de énfasis usan
+   `primary`/`foreground`, nunca `navy`.
+   ────────────────────────────────────────────────────────────────────────── */
 .dark {
+  --background: #141320;
+  --foreground: #f7f7ff;
+  --card: #1f1e30;
+  --card-foreground: #f7f7ff;
+  --popover: #1f1e30;
+  --popover-foreground: #f7f7ff;
+
+  --primary: #5b8cff;
+  --primary-foreground: #0b1020;
+
+  --secondary: #29273f;
+  --secondary-foreground: #f7f7ff;
+  --muted: #29273f;
+  --muted-foreground: #a5a3b8;
+  --accent: #29273f;
+  --accent-foreground: #cdd9ff;
+
+  --destructive: #f43f5e;
+
+  --border: #322f4a;
+  --input: #322f4a;
+  --ring: #5b8cff;
+
+  --navy: #f7f7ff;
+  --ink: #a5a3b8;
+  --faint: #6f6d82;
+  --brand: #5b8cff;
+  --brand-hover: #7aa2ff;
+  --brand-soft: #29273f;
+  --line: #322f4a;
+  --surface: #1f1e30;
+  --income: #34d399;
+  --expense: #fb7185;
+  --warn: #fbbf24;
+  --alert: #f43f5e;
+  --hero: #29273f;
+  --hero-foreground: #f7f7ff;
+
+  --income-foreground: #0b1020;
+  --expense-foreground: #0b1020;
+
+  --overlay: rgba(0, 0, 0, 0.72);
+
   --h-canvas: #141320;
   --h-canvas-alt: #191826;
   --h-surface: #1f1e30;
@@ -98,13 +209,6 @@
   --h-text-secondary: #a5a3b8;
   --h-text-faint: #6f6d82;
   --h-xp: #a6ff00;
+  --h-xp-ink: #141320;
   --h-streak: #ff7a1a;
-  --h-emerald: #34d399;
-  --h-cyan: #22d3ee;
-  --h-blue: #60a5fa;
-  --h-violet: #a78bfa;
-  --h-pink: #f472b6;
-  --h-orange: #fb923c;
-  --h-amber: #fbbf24;
-  --h-lime: #a3e635;
 }

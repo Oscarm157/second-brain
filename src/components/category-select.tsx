@@ -31,7 +31,7 @@ export function CategorySelect({
       disabled={pending}
       aria-label="Categoría del movimiento"
       className={cn(
-        "h-8 w-full max-w-44 rounded-md border border-line bg-white px-2 text-xs text-navy outline-none transition-colors",
+        "h-8 w-full max-w-44 rounded-md border border-line bg-card px-2 text-xs text-navy outline-none transition-colors",
         "focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30",
         value ? "" : "text-ink",
       )}

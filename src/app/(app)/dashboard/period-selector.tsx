@@ -22,7 +22,7 @@ export function PeriodSelector({
       value={current}
       onChange={(e) => router.push(`${basePath}?statement=${e.target.value}`)}
       aria-label="Periodo"
-      className="h-9 rounded-md border border-line bg-white px-3 text-sm font-medium text-navy outline-none transition-colors focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30"
+      className="h-9 rounded-md border border-line bg-card px-3 text-sm font-medium text-navy outline-none transition-colors focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30"
     >
       {statements.map((s) => (
         <option key={s.id} value={s.id}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "motion/react";
+import { useTheme } from "next-themes";
 import {
   Area,
   AreaChart,
@@ -33,7 +34,7 @@ function ChartTooltip({
   const entrada = payload.find((p) => p.dataKey === "in")?.value ?? 0;
   const salida = payload.find((p) => p.dataKey === "out")?.value ?? 0;
   return (
-    <div className="rounded-lg border border-line bg-white px-3 py-2 text-xs shadow-sm">
+    <div className="rounded-lg border border-line bg-card px-3 py-2 text-xs shadow-sm">
       <div className="mb-1 font-medium text-navy">{label ? shortDate(label) : ""}</div>
       <div className="flex items-center gap-2 tabular-nums">
         <span className="size-2 rounded-full bg-income" />
@@ -51,6 +52,12 @@ function ChartTooltip({
 
 export function CashflowChart({ data }: { data: Point[] }) {
   const reduce = useReducedMotion();
+  const { resolvedTheme } = useTheme();
+  const dark = resolvedTheme === "dark";
+  const grid = dark ? "#322f4a" : "#e7ecf4";
+  const tick = dark ? "#6f6d82" : "#8a94a6";
+  const income = dark ? "#34d399" : "#0f9d58";
+  const brand = dark ? "#5b8cff" : "#2456e6";
 
   if (data.length === 0) {
     return (
@@ -66,35 +73,35 @@ export function CashflowChart({ data }: { data: Point[] }) {
         <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="grad-in" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0f9d58" stopOpacity={0.22} />
-              <stop offset="100%" stopColor="#0f9d58" stopOpacity={0} />
+              <stop offset="0%" stopColor={income} stopOpacity={0.22} />
+              <stop offset="100%" stopColor={income} stopOpacity={0} />
             </linearGradient>
             <linearGradient id="grad-out" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2456e6" stopOpacity={0.22} />
-              <stop offset="100%" stopColor="#2456e6" stopOpacity={0} />
+              <stop offset="0%" stopColor={brand} stopOpacity={0.22} />
+              <stop offset="100%" stopColor={brand} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="#e7ecf4" />
+          <CartesianGrid vertical={false} stroke={grid} />
           <XAxis
             dataKey="date"
             tickFormatter={shortDate}
-            tick={{ fill: "#8a94a6", fontSize: 11 }}
+            tick={{ fill: tick, fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "#e7ecf4" }}
+            axisLine={{ stroke: grid }}
             minTickGap={24}
           />
           <YAxis
             tickFormatter={(v) => compact.format(v as number)}
-            tick={{ fill: "#8a94a6", fontSize: 11 }}
+            tick={{ fill: tick, fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             width={44}
           />
-          <Tooltip content={<ChartTooltip />} cursor={{ stroke: "#e7ecf4" }} />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: grid }} />
           <Area
             type="monotone"
             dataKey="in"
-            stroke="#0f9d58"
+            stroke={income}
             strokeWidth={2}
             fill="url(#grad-in)"
             isAnimationActive={!reduce}
@@ -103,7 +110,7 @@ export function CashflowChart({ data }: { data: Point[] }) {
           <Area
             type="monotone"
             dataKey="out"
-            stroke="#2456e6"
+            stroke={brand}
             strokeWidth={2}
             fill="url(#grad-out)"
             isAnimationActive={!reduce}

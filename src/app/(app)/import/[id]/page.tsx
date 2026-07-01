@@ -77,7 +77,7 @@ export default async function ReviewPage({
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {totals.map((t) => (
-          <div key={t.label} className="rounded-xl border border-line bg-white px-4 py-3">
+          <div key={t.label} className="rounded-xl border border-line bg-card px-4 py-3">
             <div className="text-xs font-medium uppercase tracking-wide text-faint">
               {t.label}
             </div>

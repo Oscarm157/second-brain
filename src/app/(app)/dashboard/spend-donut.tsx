@@ -33,7 +33,7 @@ function groupRows(data: Slice[]): Slice[] {
   const tail = sorted.slice(MAX_ROWS);
   const rest: Slice = {
     name: `Otras (${tail.length})`,
-    color: "#64748b",
+    color: "var(--faint)",
     total: tail.reduce((s, x) => s + x.total, 0),
     pct: tail.reduce((s, x) => s + x.pct, 0),
     members: tail.map((t) => ({ name: t.name, color: t.color, total: t.total, pct: t.pct })),

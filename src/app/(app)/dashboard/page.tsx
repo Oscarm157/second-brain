@@ -74,9 +74,9 @@ export default async function DashboardPage({
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-line bg-white p-5 lg:p-6">
+        <section className="rounded-xl border border-line bg-card p-5 lg:p-6">
           <div className="mb-5">
-            <h2 className="inline-flex rounded-md bg-income px-2.5 py-1 text-sm font-semibold text-white">
+            <h2 className="inline-flex rounded-md bg-income px-2.5 py-1 text-sm font-semibold text-income-foreground">
               Ingreso por categoría
             </h2>
           </div>
@@ -88,9 +88,9 @@ export default async function DashboardPage({
           />
         </section>
 
-        <section className="rounded-xl border border-line bg-white p-5 lg:p-6">
+        <section className="rounded-xl border border-line bg-card p-5 lg:p-6">
           <div className="mb-5">
-            <h2 className="inline-flex rounded-md bg-expense px-2.5 py-1 text-sm font-semibold text-white">
+            <h2 className="inline-flex rounded-md bg-expense px-2.5 py-1 text-sm font-semibold text-expense-foreground">
               Gasto por categoría
             </h2>
           </div>
@@ -115,7 +115,7 @@ export default async function DashboardPage({
         <CashflowChart data={cashflow} />
       </section>
 
-      <section className="rounded-xl border border-line bg-white">
+      <section className="rounded-xl border border-line bg-card">
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
           <h2 className="text-sm font-semibold text-navy">Movimientos recientes</h2>
           <Link href={`/import/${statement.id}`} className="text-xs text-brand hover:underline">
@@ -133,7 +133,7 @@ export default async function DashboardPage({
             >
               <span
                 className="size-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: t.categoryColor ?? "#cbd2dd" }}
+                style={{ backgroundColor: t.categoryColor ?? "var(--faint)" }}
               />
               <div className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-navy">

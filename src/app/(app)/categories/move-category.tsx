@@ -39,7 +39,7 @@ export function MoveCategory({
       onChange={onChange}
       disabled={pending}
       aria-label="Mover bajo categoría"
-      className="h-7 max-w-36 rounded-md border border-line bg-white px-1.5 text-xs text-ink outline-none focus-visible:border-brand"
+      className="h-7 max-w-36 rounded-md border border-line bg-card px-1.5 text-xs text-ink outline-none focus-visible:border-brand"
     >
       <option value="">{isParent ? "Principal" : "Sacar a principal"}</option>
       {parents

@@ -65,7 +65,7 @@ export function CodeBoard({
         ))}
         <button
           onClick={() => setCreating(true)}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-[var(--h-blue)] px-3 py-1.5 text-sm font-semibold text-[#0b1020]"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-[var(--h-blue)] px-3 py-1.5 text-sm font-semibold text-[var(--h-on-accent)]"
         >
           <Plus className="size-4" /> Nueva card
         </button>

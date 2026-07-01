@@ -12,7 +12,7 @@ export default async function AppLayout({
   if (me.mustChangePassword) redirect("/change-password");
 
   return (
-    <div className="min-h-full bg-white">
+    <div className="min-h-full bg-background">
       <Sidebar name={me.name} />
       <main className="lg:pl-64">
         <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-12 lg:py-10">

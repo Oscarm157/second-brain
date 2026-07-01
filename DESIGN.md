@@ -1,8 +1,29 @@
-# DESIGN.md — Super-app de desarrollo personal
+# DESIGN.md — Second Brain
 
 Dirección visual congelada para mantener consistencia entre módulos (Hábitos, Finanzas, y los que
-vengan). Es una app in-app de datos personales, dark y gamificada tipo HabitKit. El "wow" lo dan
-los heatmaps de colores, los números display grandes y la recompensa al completar, no la decoración.
+vengan). Es una app in-app de datos personales, gamificada tipo HabitKit. El "wow" lo dan los heatmaps
+de colores, los números display grandes y la recompensa al completar, no la decoración.
+
+## Sistema de dos modos (light por default, dark por switch)
+La app es **light como tema principal** y trae un switch a **dark** que conmuta toda la app (incluido
+finanzas). Reglas:
+- Una sola fuente de verdad: **tokens CSS** en `globals.css`. `:root` = valores light; `.dark` = override
+  dark. La clase `.dark` vive en `<html>` y la maneja `next-themes` (default light, ignora el SO).
+- **Nada de hex crudo en componentes.** Toda superficie/texto/borde sale de un token, para que el switch
+  funcione solo. Los colores por hábito (8) son dato en DB y se usan como relleno o con alpha (heatmap),
+  así que no necesitan variante por tema.
+- El **heatmap es agnóstico de tema** por construcción: `rgba(color, 0.08→1)` sobre el canvas. Sobre
+  canvas claro da el look "contribuciones de GitHub" en claro; sobre canvas oscuro, el look HabitKit.
+- Roles que divergen en dark: el azul de marca y los semánticos de dinero se aclaran/saturan para
+  contraste; el relleno de énfasis usa `primary`/`foreground`, nunca el token de texto.
+
+## Referencias (reference lock)
+- **Light (base) — superficies y densidad:** dashboards finanzas/productividad light tipo *Runey*
+  (`runey.app`, canvas off-white cálido, cards blancas con borde hairline, un acento por superficie).
+- **Light — heatmap:** *contribuciones de GitHub en claro* (celda vacía gris muy clara, intensidad creciente
+  en el color del hábito).
+- **Dark (alterno) — se preserva el lock original:** Superlist (superficies), Stryds (números display +
+  neón de acción), Duolingo (estructura de gamificación), HabitKit (heatmap por color).
 
 ## Reference lock (de Refero)
 - **Base / shell / superficies (primaria): Superlist** (`superlist.com`) — canvas violeta-negro
@@ -20,23 +41,29 @@ No promediar: la base es Superlist (mood + densidad + superficies). De Stryds so
 números display y el neón de acción. De Duolingo solo la estructura de gamificación.
 
 ## Tema y atmósfera
-Dark, vivo, jugable pero legible. Pensado para TDAH: claridad instantánea, memoria visual externa
-(el heatmap), recompensa inmediata al completar, y perdón al fallar. Nada de ruido gratuito.
+Light es el default de sesión nueva; dark se activa por switch y persiste en localStorage. Ambos modos
+usan los mismos tokens, con los overrides de la sección Paleta. Pensado para TDAH en ambos modos:
+claridad instantánea, memoria visual externa (el heatmap), recompensa inmediata al completar, perdón al
+fallar. Nada de ruido gratuito.
 
-## Paleta (roles semánticos)
-- **Canvas / fondo:** `#141320` (deep). Banda/sección alterna: `#191826`.
-- **Superficies:** card `#1f1e30`; elevada (surface-2) `#29273f`.
-- **Bordes / líneas:** sutil `#322f4a`.
-- **Texto:** primario `#f7f7ff`; secundario `#a5a3b8`; tenue `#6f6d82`. Nunca negro puro sobre dark.
-- **Acento por hábito (el usuario elige uno al crear):** paleta curada de 8 —
-  emerald `#34d399`, cyan `#22d3ee`, blue `#60a5fa`, violet `#a78bfa`, pink `#f472b6`,
-  orange `#fb923c`, amber `#fbbf24`, lime `#a3e635`. El heatmap de ese hábito usa intensidades de SU
-  color (de tenue sobre canvas a saturado al 100%). Un hábito = un color estable en toda la app.
-- **Racha / fuego:** naranja-ámbar cálido `#ff7a1a`.
-- **XP / nivel / recompensa:** neón `#a6ff00` (solo para XP, nivel y celebración; no como fondo grande).
-- **Semánticos finanzas (preservar, solo dinero):** ingreso verde `#34d399`, gasto rojo `#fb7185`,
-  aviso ámbar `#fbbf24`, alerta `#f43f5e`. Adaptados a contraste sobre dark. Verde solo dinero que
-  entra; rojo solo gasto/alerta real.
+## Paleta (roles semánticos · light / dark)
+Los nombres son roles de token; el valor cambia por modo. `light` es el default.
+- **Canvas / fondo:** light `#ffffff` (banda alterna `#f6f8fb`) · dark `#141320` (alterna `#191826`).
+- **Canvas gamificado (full-bleed `--h-canvas`):** light `#f6f7f9` · dark `#141320`.
+- **Superficies (card):** light `#ffffff`; elevada `#f6f8fb` · dark `#1f1e30`; elevada `#29273f`.
+- **Bordes / líneas:** light `#e7ecf4` · dark `#322f4a`.
+- **Texto:** primario light `#16203a` / dark `#f7f7ff`; secundario `#5b6678` / `#a5a3b8`; tenue
+  `#8a94a6` / `#6f6d82`. Nunca negro ni blanco puro.
+- **Marca (azul, con disciplina):** light `#2456e6` · dark `#5b8cff` (más claro para contraste).
+- **Acento por hábito (8, el usuario elige al crear):** mismos valores en ambos modos (son dato en DB):
+  emerald `#34d399`, cyan `#22d3ee`, blue `#60a5fa`, violet `#a78bfa`, pink `#f472b6`, orange `#fb923c`,
+  amber `#fbbf24`, lime `#a3e635`. El heatmap usa intensidades de SU color vía alpha sobre el canvas.
+- **Racha / fuego (`--h-streak`):** light `#e2620a` · dark `#ff7a1a`.
+- **XP / nivel / recompensa (`--h-xp`):** light lime profundo `#5a9e0e` (legible en claro) · dark neón
+  `#a6ff00`. Solo para XP, nivel y celebración; no como fondo grande.
+- **Semánticos finanzas (solo dinero):** ingreso verde light `#0f9d58` / dark `#34d399`; gasto rojo
+  `#e85d2f` / `#fb7185`; aviso ámbar `#e8a33d` / `#fbbf24`; alerta `#d23f3f` / `#f43f5e`. Verde solo
+  dinero que entra; rojo solo gasto/alerta real.
 
 ## Tipografía
 - **Display / títulos / números grandes:** Space Grotesk, `tracking-tight`, escala grande para
@@ -57,7 +84,7 @@ Dark, vivo, jugable pero legible. Pensado para TDAH: claridad instantánea, memo
   desbloqueados vs bloqueados). Números display grandes.
 - **Inputs / formularios:** fondo superficie, borde sutil, foco con anillo de acento; picker de color
   e icono al crear hábito.
-- **Navegación:** sidebar fija oscura, agrupada por secciones (Desarrollo personal / Finanzas), con
+- **Navegación:** sidebar fija oscura, agrupada por secciones (Finanzas / Personal), con
   link al Hub arriba; ruta activa marcada con el acento.
 
 ## Layout y espaciado
@@ -73,8 +100,9 @@ Dark, vivo, jugable pero legible. Pensado para TDAH: claridad instantánea, memo
   racha/XP que cuentan hacia su valor. Con propósito, respetando `prefers-reduced-motion`. Nada gratuito.
 
 ## Guardrails (qué NO hacer)
-- Dark consistente; no romper con fondos claros. Nunca negro puro (#000) ni texto negro puro.
-- Color con disciplina: cada hábito su color; neón solo para XP/recompensa; verde/rojo solo dinero.
+- Todo color sale de un token; nada de hex crudo en componentes (rompería el switch). Nunca negro
+  (#000) ni blanco puro como texto.
+- Color con disciplina: cada hábito su color; neón/lime solo para XP/recompensa; verde/rojo solo dinero.
 - Sin gradientes morados genéricos de slop, sin sombras pesadas, sin cards anidadas en exceso.
 - Copy factual en español, sin AI-slop, sin frases huecas, sin em-dashes.
 - Claridad de un vistazo por encima de densidad. Cada vista nace con loading / empty / error.
@@ -84,7 +112,7 @@ Dark, vivo, jugable pero legible. Pensado para TDAH: claridad instantánea, memo
 - Desktop: sidebar + grid de cards (2-3 col en hábitos, según ancho).
 - Móvil: una columna; sidebar colapsa a barra superior; heatmaps a ancho completo; vista "Hoy" primero.
 
-## Transición (sequencing)
-El módulo Hábitos y el Hub nacen dark con estos tokens. Las pantallas de Finanzas siguen en su tema
-actual hasta el paso de propagación (retheme dark global), que preserva verde/rojo semánticos. Durante
-el piloto puede haber convivencia temporal claro/oscuro: es secuencia, no el estado final (todo dark).
+## Switch de tema
+- `next-themes` (`attribute="class"`, `defaultTheme="light"`, sin `enableSystem`) pone/quita `.dark` en
+  `<html>`. La preferencia persiste en localStorage. Toggle sol/luna en el Sidebar.
+- Toda pantalla, incluida finanzas, conmuta con un solo click. El default en sesión nueva es light.

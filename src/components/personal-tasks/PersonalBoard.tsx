@@ -64,7 +64,7 @@ function TaskCard({ task }: { task: PersonalTask }) {
             e.stopPropagation();
             startTransition(() => void deleteTask(task.id));
           }}
-          className="text-[var(--h-text-faint)] opacity-0 transition-colors hover:text-[#f87171] group-hover:opacity-100"
+          className="text-[var(--h-text-faint)] opacity-0 transition-colors hover:text-alert group-hover:opacity-100"
           aria-label="Borrar"
         >
           <X className="size-4" />

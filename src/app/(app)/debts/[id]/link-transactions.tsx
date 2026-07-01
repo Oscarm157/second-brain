@@ -101,7 +101,7 @@ export function LinkTransactions({
             value={q}
             onChange={(e) => runSearch(e.target.value)}
             placeholder="Busca por descripción o contraparte"
-            className="h-9 w-full rounded-md border border-line bg-white pl-8 pr-2 text-sm text-navy outline-none focus-visible:border-brand"
+            className="h-9 w-full rounded-md border border-line bg-card pl-8 pr-2 text-sm text-navy outline-none focus-visible:border-brand"
           />
         </div>
 

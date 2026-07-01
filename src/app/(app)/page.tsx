@@ -73,10 +73,10 @@ export default async function HubPage() {
         {/* Finanzas — numérico, mantiene verde/rojo */}
         <Link
           href="/dashboard"
-          className="group flex flex-col rounded-2xl border border-[var(--h-border)] bg-[var(--h-surface)] p-6 transition-colors hover:border-[#34d399]"
+          className="group flex flex-col rounded-2xl border border-[var(--h-border)] bg-[var(--h-surface)] p-6 transition-colors hover:border-[var(--income)]"
         >
           <div className="flex items-center gap-2">
-            <Wallet className="size-5 text-[#34d399]" />
+            <Wallet className="size-5 text-[var(--income)]" />
             <span className="text-sm font-semibold text-[var(--h-text)]">Finanzas</span>
             <ArrowUpRight className="ml-auto size-4 text-[var(--h-text-faint)] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </div>
@@ -84,11 +84,11 @@ export default async function HubPage() {
             <div className="mt-5 space-y-2.5">
               <div className="flex items-baseline justify-between">
                 <span className="text-xs text-[var(--h-text-secondary)]">Ingresos</span>
-                <span className="font-display text-lg font-semibold text-[#34d399]">{money(fin.kpis.ingresos)}</span>
+                <span className="font-display text-lg font-semibold text-[var(--income)]">{money(fin.kpis.ingresos)}</span>
               </div>
               <div className="flex items-baseline justify-between">
                 <span className="text-xs text-[var(--h-text-secondary)]">Gastos</span>
-                <span className="font-display text-lg font-semibold text-[#fb7857]">{money(fin.kpis.gastos)}</span>
+                <span className="font-display text-lg font-semibold text-[var(--expense)]">{money(fin.kpis.gastos)}</span>
               </div>
             </div>
           ) : (
@@ -99,7 +99,7 @@ export default async function HubPage() {
         {/* Hábitos */}
         <Link
           href="/habitos"
-          className="group flex flex-col rounded-2xl border border-[var(--h-border)] bg-[var(--h-surface)] p-6 transition-colors hover:border-[#ff7a1a]"
+          className="group flex flex-col rounded-2xl border border-[var(--h-border)] bg-[var(--h-surface)] p-6 transition-colors hover:border-[var(--h-streak)]"
         >
           <div className="flex items-center gap-2">
             <Flame className="size-5 text-[var(--h-streak)]" />
@@ -128,7 +128,7 @@ export default async function HubPage() {
           </div>
           {code.blocked > 0 ? (
             <div className="flex items-baseline gap-2">
-              <span className="font-display text-3xl font-bold text-[#fb923c]">{code.blocked}</span>
+              <span className="font-display text-3xl font-bold text-[var(--alert)]">{code.blocked}</span>
               <span className="text-sm text-[var(--h-text-secondary)]">bloqueadas</span>
             </div>
           ) : null}

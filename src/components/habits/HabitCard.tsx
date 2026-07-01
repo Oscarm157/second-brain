@@ -36,7 +36,7 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
   return (
     <motion.div
       className="flex flex-col gap-4 rounded-[20px] border p-5"
-      style={{ background: "#1f1e30", borderColor: "#322f4a" }}
+      style={{ background: "var(--h-surface)", borderColor: "var(--h-border)" }}
       initial={reduced ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -56,8 +56,8 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
             </span>
           </div>
           <div className="min-w-0">
-            <p className="truncate font-display font-semibold text-[#f7f7ff]">{habit.name}</p>
-            <p className="text-xs text-[#6f6d82]">
+            <p className="truncate font-display font-semibold text-[var(--h-text)]">{habit.name}</p>
+            <p className="text-xs text-[var(--h-text-faint)]">
               {habit.targetPerDay === 1 ? "Una vez al día" : `${habit.targetPerDay}× al día`}
             </p>
           </div>

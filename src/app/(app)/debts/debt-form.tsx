@@ -32,7 +32,7 @@ const KINDS = [
 ];
 
 const inputCls =
-  "h-9 w-full rounded-md border border-line bg-white px-2 text-sm text-navy outline-none focus-visible:border-brand";
+  "h-9 w-full rounded-md border border-line bg-card px-2 text-sm text-navy outline-none focus-visible:border-brand";
 
 function Field({
   label,
@@ -185,7 +185,7 @@ export function DebtForm({
           defaultValue={debt?.description ?? ""}
           maxLength={500}
           rows={2}
-          className="w-full rounded-md border border-line bg-white px-2 py-1.5 text-sm text-navy outline-none focus-visible:border-brand"
+          className="w-full rounded-md border border-line bg-card px-2 py-1.5 text-sm text-navy outline-none focus-visible:border-brand"
           placeholder="Detalle, número de cuenta, condiciones..."
         />
       </Field>

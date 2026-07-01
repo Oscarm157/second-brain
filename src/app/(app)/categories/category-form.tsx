@@ -55,7 +55,7 @@ export function CategoryForm({ parents }: { parents: Parent[] }) {
           <span className="text-xs font-medium text-ink">Tipo</span>
           <div
             className={cn(
-              "flex h-9 items-center rounded-md border border-line bg-white p-1",
+              "flex h-9 items-center rounded-md border border-line bg-card p-1",
               parent && "opacity-50",
             )}
           >
@@ -65,7 +65,7 @@ export function CategoryForm({ parents }: { parents: Parent[] }) {
               onClick={() => setKind("expense")}
               className={cn(
                 "h-7 rounded px-3 text-xs font-medium transition-colors",
-                effectiveKind === "expense" ? "bg-navy text-white" : "text-ink hover:bg-surface",
+                effectiveKind === "expense" ? "bg-foreground text-background" : "text-ink hover:bg-surface",
               )}
             >
               Gasto
@@ -76,7 +76,7 @@ export function CategoryForm({ parents }: { parents: Parent[] }) {
               onClick={() => setKind("income")}
               className={cn(
                 "h-7 rounded px-3 text-xs font-medium transition-colors",
-                effectiveKind === "income" ? "bg-income text-white" : "text-ink hover:bg-surface",
+                effectiveKind === "income" ? "bg-income text-income-foreground" : "text-ink hover:bg-surface",
               )}
             >
               Ingreso
@@ -91,7 +91,7 @@ export function CategoryForm({ parents }: { parents: Parent[] }) {
           <select
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}
-            className="h-9 w-full rounded-md border border-line bg-white px-2 text-sm text-navy outline-none focus-visible:border-brand"
+            className="h-9 w-full rounded-md border border-line bg-card px-2 text-sm text-navy outline-none focus-visible:border-brand"
           >
             <option value="">Ninguna (categoría principal)</option>
             <optgroup label="Gastos">

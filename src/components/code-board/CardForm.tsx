@@ -120,7 +120,7 @@ export function CardForm({
         </div>
       </div>
 
-      {error ? <p className="text-sm text-[#f87171]">{error}</p> : null}
+      {error ? <p className="text-sm text-[var(--alert)]">{error}</p> : null}
 
       <div className="flex justify-end gap-2 pt-1">
         <button
@@ -133,7 +133,7 @@ export function CardForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-[var(--h-blue)] px-4 py-2 text-sm font-semibold text-[#0b1020] disabled:opacity-60"
+          className="rounded-lg bg-[var(--h-blue)] px-4 py-2 text-sm font-semibold text-[var(--h-on-accent)] disabled:opacity-60"
         >
           {pending ? "Guardando…" : editing ? "Guardar" : "Crear card"}
         </button>

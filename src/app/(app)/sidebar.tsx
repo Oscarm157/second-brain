@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { logout } from "@/app/actions/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; icon: typeof Home };
@@ -36,7 +37,7 @@ const sections: NavSection[] = [
     ],
   },
   {
-    title: "Desarrollo personal",
+    title: "Personal",
     items: [
       { href: "/habitos", label: "Hábitos", icon: Flame },
       { href: "/pendientes", label: "Pendientes", icon: ListChecks },
@@ -95,20 +96,23 @@ export function Sidebar({ name }: { name: string }) {
   return (
     <>
       {/* Escritorio: barra lateral fija */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-card lg:flex">
         <Link href="/" className="flex items-center gap-2 px-5 py-5">
-          <span className="flex size-7 items-center justify-center rounded-md bg-brand text-[13px] font-bold text-white">
-            F
+          <span className="flex size-7 items-center justify-center rounded-md bg-brand text-[11px] font-bold text-white">
+            SB
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-navy">
-            Finanzas
+            Second Brain
           </span>
         </Link>
         <nav className="flex flex-1 flex-col overflow-y-auto px-3 pb-3">
           <NavLinks pathname={pathname} />
         </nav>
         <div className="border-t border-line px-3 py-3">
-          <div className="px-3 py-1 text-xs text-faint">Sesión</div>
+          <div className="flex items-center justify-between gap-2 px-3 pb-1.5">
+            <span className="text-xs text-faint">Sesión</span>
+            <ThemeToggle />
+          </div>
           <div className="flex items-center justify-between gap-2 px-3 py-1">
             <span className="truncate text-sm font-medium text-navy">{name}</span>
             <form action={logout}>
@@ -125,25 +129,28 @@ export function Sidebar({ name }: { name: string }) {
       </aside>
 
       {/* Móvil: barra superior + nav horizontal */}
-      <div className="sticky top-0 z-30 border-b border-line bg-white/90 backdrop-blur lg:hidden">
+      <div className="sticky top-0 z-30 border-b border-line bg-card/90 backdrop-blur lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-md bg-brand text-[12px] font-bold text-white">
-              F
+            <span className="flex size-6 items-center justify-center rounded-md bg-brand text-[10px] font-bold text-white">
+              SB
             </span>
             <span className="font-display text-base font-bold tracking-tight text-navy">
-              Finanzas
+              Second Brain
             </span>
           </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-ink transition-colors hover:text-alert"
-            >
-              <LogOut className="size-3.5" strokeWidth={1.8} />
-              Salir
-            </button>
-          </form>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <form action={logout}>
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-ink transition-colors hover:text-alert"
+              >
+                <LogOut className="size-3.5" strokeWidth={1.8} />
+                Salir
+              </button>
+            </form>
+          </div>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
           {allItems.map(({ href, label, icon: Icon }) => {

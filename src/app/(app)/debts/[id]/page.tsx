@@ -64,7 +64,7 @@ export default async function DebtDetailPage({
       </header>
 
       {/* Desglose */}
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+      <section className="rounded-xl border border-line bg-card p-5 sm:p-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Stat label="Saldo actual" value={money(Math.max(0, saldo))} big />
           <Stat label="Monto original" value={money(debt.principal)} />
@@ -92,7 +92,7 @@ export default async function DebtDetailPage({
         ) : null}
       </section>
 
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+      <section className="rounded-xl border border-line bg-card p-5 sm:p-6">
         <LinkTransactions debtId={debt.id} linked={movimientos} />
       </section>
     </div>

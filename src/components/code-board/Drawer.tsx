@@ -26,11 +26,11 @@ export function Drawer({
   if (!open) return null;
 
   return (
-    <div className="dark fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-50 flex justify-end">
       <button
         aria-label="Cerrar"
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-overlay backdrop-blur-sm"
       />
       <aside
         className="relative flex h-full w-full max-w-xl flex-col border-l border-[var(--h-border)] shadow-2xl"

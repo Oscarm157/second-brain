@@ -27,7 +27,7 @@ export function ImportForm() {
         htmlFor="pdf"
         className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-surface px-6 py-10 text-center transition-colors hover:border-brand hover:bg-brand-soft"
       >
-        <span className="flex size-10 items-center justify-center rounded-lg bg-white text-brand">
+        <span className="flex size-10 items-center justify-center rounded-lg bg-card text-brand">
           <FileUp className="size-5" strokeWidth={1.8} />
         </span>
         <span className="text-sm font-medium text-navy">

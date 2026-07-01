@@ -101,7 +101,7 @@ export function TransactionsTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-1 rounded-lg border border-line bg-white p-1">
+        <div className="flex items-center gap-1 rounded-lg border border-line bg-card p-1">
           {dirBtn("all", "Todos")}
           {dirBtn("in", "Entradas")}
           {dirBtn("out", "Salidas")}
@@ -110,7 +110,7 @@ export function TransactionsTable({
           <select
             value={cat}
             onChange={(e) => setCat(e.target.value)}
-            className="h-9 max-w-52 rounded-md border border-line bg-white px-2 text-sm text-navy outline-none focus-visible:border-brand"
+            className="h-9 max-w-52 rounded-md border border-line bg-card px-2 text-sm text-navy outline-none focus-visible:border-brand"
           >
             <option value="all">Todas las categorías</option>
             <option value="none">Sin categoría</option>
@@ -122,7 +122,7 @@ export function TransactionsTable({
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar movimiento"
-              className="h-9 w-full rounded-md border border-line bg-white pl-8 pr-2 text-sm text-navy outline-none focus-visible:border-brand"
+              className="h-9 w-full rounded-md border border-line bg-card pl-8 pr-2 text-sm text-navy outline-none focus-visible:border-brand"
             />
           </div>
         </div>
@@ -137,7 +137,7 @@ export function TransactionsTable({
             <select
               value={bulkCat}
               onChange={(e) => setBulkCat(e.target.value)}
-              className="h-9 max-w-52 rounded-md border border-line bg-white px-2 text-sm text-navy outline-none focus-visible:border-brand"
+              className="h-9 max-w-52 rounded-md border border-line bg-card px-2 text-sm text-navy outline-none focus-visible:border-brand"
             >
               <option value="">Sin categoría</option>
               {categoryOptionNodes(options)}
@@ -162,7 +162,7 @@ export function TransactionsTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-line bg-white">
+      <div className="overflow-hidden rounded-xl border border-line bg-card">
         <div className="max-h-[68vh] overflow-y-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-surface">
@@ -219,7 +219,7 @@ export function TransactionsTable({
                         />
                         <span
                           className="size-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: t.categoryColor ?? "#cbd2dd" }}
+                          style={{ backgroundColor: t.categoryColor ?? "var(--faint)" }}
                         />
                         <span className="truncate text-navy hover:text-brand">
                           {t.counterparty ?? t.description}
@@ -253,7 +253,7 @@ export function TransactionsTable({
                     <tr className="bg-surface/60">
                       <td colSpan={2} />
                       <td colSpan={totalCols - 2} className="px-5 pb-3 pt-0">
-                        <div className="rounded-lg border border-line bg-white p-4 text-xs">
+                        <div className="rounded-lg border border-line bg-card p-4 text-xs">
                           <p className="mb-3 font-medium text-navy">{t.description}</p>
                           {(() => {
                             const fields = parseDetail(t.rawDetail);

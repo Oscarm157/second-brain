@@ -34,7 +34,7 @@ export default async function CategoriesPage() {
         {list.length === 0 ? (
           <p className="text-sm text-ink">Ninguna todavía.</p>
         ) : (
-          <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
+          <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-card">
             {list.map((c) => {
               const subs = childrenOf(c.id);
               const total = rootTotal(c);
@@ -103,7 +103,7 @@ export default async function CategoriesPage() {
         </p>
       </header>
 
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+      <section className="rounded-xl border border-line bg-card p-5 sm:p-6">
         <h2 className="mb-4 text-sm font-semibold text-navy">Nueva categoría</h2>
         <CategoryForm parents={parents} />
       </section>

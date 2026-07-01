@@ -111,11 +111,11 @@ export function ScenarioBoard({
   const netoColor = netoAj >= 0 ? "text-emerald-400" : "text-rose-400";
 
   const list = (items: Item[], accent: string) => (
-    <div className="overflow-hidden rounded-xl border border-line bg-white">
+    <div className="overflow-hidden rounded-xl border border-line bg-card">
       <div
         className={cn(
-          "px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-white",
-          accent === "Ingresos" ? "bg-income" : "bg-expense",
+          "px-4 py-2.5 text-xs font-semibold uppercase tracking-wide",
+          accent === "Ingresos" ? "bg-income text-income-foreground" : "bg-expense text-expense-foreground",
         )}
       >
         {accent}
@@ -149,7 +149,7 @@ export function ScenarioBoard({
                     value={Number.isFinite(a.amount) ? a.amount : 0}
                     onChange={(e) => patch(i.key, { amount: parseFloat(e.target.value) || 0 })}
                     disabled={!a.included}
-                    className="h-8 w-24 rounded-md border border-line bg-white px-2 text-right text-sm tabular-nums text-navy outline-none focus-visible:border-brand"
+                    className="h-8 w-24 rounded-md border border-line bg-card px-2 text-right text-sm tabular-nums text-navy outline-none focus-visible:border-brand"
                   />
                 </div>
                 <button
@@ -171,7 +171,7 @@ export function ScenarioBoard({
                     })
                   }
                   aria-label="Porcentaje del real"
-                  className="h-7 rounded-md border border-line bg-white px-1 text-xs text-ink outline-none focus-visible:border-brand"
+                  className="h-7 rounded-md border border-line bg-card px-1 text-xs text-ink outline-none focus-visible:border-brand"
                 >
                   <option value="">%</option>
                   {PCTS.map((p) => (
@@ -199,38 +199,38 @@ export function ScenarioBoard({
   return (
     <div className="space-y-6">
       {/* Banda de resultado en vivo */}
-      <section className="rounded-2xl bg-navy p-6 text-white sm:p-8">
+      <section className="rounded-2xl bg-hero p-6 text-hero-foreground sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="text-xs uppercase tracking-wide text-white/55">Neto ajustado</span>
+            <span className="text-xs uppercase tracking-wide text-hero-foreground/55">Neto ajustado</span>
             <div className={cn("font-display text-4xl font-bold tabular-nums sm:text-5xl", netoColor)}>
               {netoAj >= 0 ? "+" : "-"}
               {money(Math.abs(netoAj))}
             </div>
-            <p className="mt-1 text-sm text-white/55">
+            <p className="mt-1 text-sm text-hero-foreground/55">
               Real del mes: {netoReal >= 0 ? "+" : "-"}
               {money(Math.abs(netoReal))}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <span className="text-xs uppercase tracking-wide text-white/55">Ingresos</span>
+              <span className="text-xs uppercase tracking-wide text-hero-foreground/55">Ingresos</span>
               <div className="font-display text-xl font-bold tabular-nums text-emerald-400">
                 {money(ingresosAj)}
               </div>
-              <p className="text-xs text-white/40 tabular-nums">de {money(realIngresos)}</p>
+              <p className="text-xs text-hero-foreground/40 tabular-nums">de {money(realIngresos)}</p>
             </div>
             <div>
-              <span className="text-xs uppercase tracking-wide text-white/55">Gastos</span>
+              <span className="text-xs uppercase tracking-wide text-hero-foreground/55">Gastos</span>
               <div className="font-display text-xl font-bold tabular-nums">{money(gastosAj)}</div>
-              <p className="text-xs text-white/40 tabular-nums">de {money(realGastos)}</p>
+              <p className="text-xs text-hero-foreground/40 tabular-nums">de {money(realGastos)}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Guardar / abrir escenarios */}
-      <section className="flex flex-col gap-3 rounded-xl border border-line bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="flex flex-col gap-3 rounded-xl border border-line bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           {saved.length > 0 && <span className="text-xs text-faint">Guardados:</span>}
           {saved.map((s) => (

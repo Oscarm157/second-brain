@@ -3,7 +3,7 @@ export function StreakBadge({ streak }: { streak: number }) {
   return (
     <span
       className="flex items-center gap-1 font-display text-sm font-bold tabular-nums"
-      style={{ color: "#ff7a1a" }}
+      style={{ color: "var(--h-streak)" }}
     >
       🔥 {streak}
     </span>

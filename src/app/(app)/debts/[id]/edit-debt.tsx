@@ -22,7 +22,7 @@ export function EditDebt({ debt }: { debt: DebtFormValues }) {
   }
 
   return (
-    <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+    <section className="rounded-xl border border-line bg-card p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-navy">Editar deuda</h2>
         <button

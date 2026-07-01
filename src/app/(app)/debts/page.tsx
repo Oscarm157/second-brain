@@ -68,34 +68,34 @@ export default async function DebtsPage() {
       ) : (
         <>
           {/* Progreso global: el KPI estrella */}
-          <section className="overflow-hidden rounded-2xl bg-navy px-6 py-7 text-white sm:px-8">
+          <section className="overflow-hidden rounded-2xl bg-hero px-6 py-7 text-hero-foreground sm:px-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <span className="text-xs font-medium uppercase tracking-[0.14em] text-white/45">
+                <span className="text-xs font-medium uppercase tracking-[0.14em] text-hero-foreground/45">
                   Progreso de tus deudas
                 </span>
                 <div className="mt-2 font-display text-5xl font-bold leading-none tabular-nums">
                   {Math.round(progresoGlobal * 100)}%
                 </div>
-                <p className="mt-2 text-sm text-white/55">
+                <p className="mt-2 text-sm text-hero-foreground/55">
                   Has abonado{" "}
-                  <span className="font-medium tabular-nums text-white/85">
+                  <span className="font-medium tabular-nums text-hero-foreground/85">
                     {money(abonadoTotal)}
                   </span>{" "}
                   de{" "}
-                  <span className="font-medium tabular-nums text-white/85">
+                  <span className="font-medium tabular-nums text-hero-foreground/85">
                     {money(originalTotal)}
                   </span>
                 </p>
               </div>
               <div className="sm:w-1/2">
-                <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                <div className="h-3 overflow-hidden rounded-full bg-hero-foreground/10">
                   <div
                     className="h-full rounded-full bg-income"
                     style={{ width: `${Math.round(progresoGlobal * 100)}%` }}
                   />
                 </div>
-                <div className="mt-2 flex justify-between text-xs text-white/45">
+                <div className="mt-2 flex justify-between text-xs text-hero-foreground/45">
                   <span>Pagado {money(abonadoTotal)}</span>
                   <span>Falta {money(Math.max(0, originalTotal - abonadoTotal))}</span>
                 </div>
@@ -173,7 +173,7 @@ function SummaryCard({
   accent: string;
 }) {
   return (
-    <div className="rounded-xl border border-line bg-white p-4">
+    <div className="rounded-xl border border-line bg-card p-4">
       <p className="text-xs uppercase tracking-wide text-faint">{label}</p>
       <p className={`mt-1 font-display text-2xl font-bold tabular-nums ${accent}`}>{value}</p>
       {sub ? <p className="mt-0.5 truncate text-xs text-faint">{sub}</p> : null}
@@ -186,7 +186,7 @@ function DebtCard({ d }: { d: DebtRow }) {
   const pct = Math.round(d.progreso * 100);
 
   return (
-    <div className="rounded-xl border border-line bg-white p-5">
+    <div className="rounded-xl border border-line bg-card p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link

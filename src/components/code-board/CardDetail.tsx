@@ -92,7 +92,7 @@ export function CardDetail({
           <button
             onClick={onDelete}
             disabled={pending}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[var(--h-text-secondary)] hover:bg-[var(--h-surface-2)] hover:text-[#f87171]"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[var(--h-text-secondary)] hover:bg-[var(--h-surface-2)] hover:text-alert"
           >
             <Trash2 className="size-3.5" /> Borrar
           </button>
@@ -113,7 +113,7 @@ export function CardDetail({
               href={card.prUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-[var(--h-blue)] hover:underline"
+              className="inline-flex items-center gap-1.5 text-[var(--primary)] hover:underline"
             >
               <Link2 className="size-4" /> Ver PR
             </a>
@@ -154,8 +154,8 @@ export function CardDetail({
                     className="rounded px-1.5 py-0.5 font-semibold"
                     style={
                       n.author === "claude"
-                        ? { background: "rgba(96,165,250,0.15)", color: "var(--h-blue)" }
-                        : { background: "rgba(52,211,153,0.15)", color: "var(--h-emerald)" }
+                        ? { background: "rgba(96,165,250,0.15)", color: "var(--primary)" }
+                        : { background: "rgba(52,211,153,0.15)", color: "var(--income)" }
                     }
                   >
                     {n.author === "claude" ? "Claude" : "Oscar"}
