@@ -1,0 +1,1 @@
+ALTER TABLE "code_cards" ADD COLUMN "focus_seconds" integer DEFAULT 0 NOT NULL;

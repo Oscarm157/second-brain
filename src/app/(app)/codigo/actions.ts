@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
@@ -155,6 +155,36 @@ export async function addNote(
     author: "oscar",
     body: parsed.data.body,
   });
+  revalidatePath("/codigo");
+}
+
+const focusSchema = z.object({
+  cardId: uuid,
+  seconds: z.number().int().positive().max(14400),
+});
+
+export async function logFocusSession(
+  cardId: string,
+  seconds: number,
+): Promise<void> {
+  const me = await requireUser();
+  const parsed = focusSchema.safeParse({ cardId, seconds });
+  if (!parsed.success) return;
+
+  // Verificar que la card es del usuario antes de acumularle tiempo.
+  const [card] = await db
+    .select({ id: codeCards.id })
+    .from(codeCards)
+    .where(and(eq(codeCards.id, parsed.data.cardId), eq(codeCards.ownerId, me.id)));
+  if (!card) return;
+
+  await db
+    .update(codeCards)
+    .set({
+      focusSeconds: sql`${codeCards.focusSeconds} + ${parsed.data.seconds}`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(codeCards.id, parsed.data.cardId), eq(codeCards.ownerId, me.id)));
   revalidatePath("/codigo");
 }
 

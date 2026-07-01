@@ -323,6 +323,7 @@ export const codeCards = pgTable("code_cards", {
   branch: text("branch"),
   prUrl: text("pr_url"),
   position: integer("position").notNull().default(0),
+  focusSeconds: integer("focus_seconds").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

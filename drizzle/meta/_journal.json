@@ -57,6 +57,13 @@
       "when": 1782748920386,
       "tag": "0007_wet_hammerhead",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1782926653026,
+      "tag": "0008_parallel_multiple_man",
+      "breakpoints": true
     }
   ]
 }
