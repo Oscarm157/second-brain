@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useRef, useTransition } from "react";
-import { createHabit } from "@/app/(app)/habitos/actions";
+import { useRouter } from "next/navigation";
+import { Pencil } from "lucide-react";
+import { createHabit, updateHabit } from "@/app/(app)/habitos/actions";
+import type { Habit } from "@/lib/schema";
 
 const COLORS = [
   { value: "#34d399", label: "Esmeralda" },
@@ -14,10 +17,12 @@ const COLORS = [
   { value: "#a3e635", label: "Lima" },
 ];
 
-export function HabitFormTrigger() {
+export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
+  const isEdit = !!habit;
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState("#34d399");
+  const [selectedColor, setSelectedColor] = useState(habit?.color ?? "#34d399");
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -27,25 +32,40 @@ export function HabitFormTrigger() {
     fd.set("color", selectedColor);
     setError(null);
     startTransition(async () => {
-      const result = await createHabit(fd);
+      const result = await (isEdit ? updateHabit(fd) : createHabit(fd));
       if (result?.error) {
         setError(result.error);
         return;
       }
       setOpen(false);
-      formRef.current?.reset();
-      setSelectedColor("#34d399");
+      if (isEdit) {
+        router.refresh();
+      } else {
+        formRef.current?.reset();
+        setSelectedColor("#34d399");
+      }
     });
   }
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover"
-      >
-        Nuevo hábito
-      </button>
+      {isEdit ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-navy transition-colors hover:bg-surface"
+        >
+          <Pencil className="size-3.5" />
+          Editar
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover"
+        >
+          Nuevo hábito
+        </button>
+      )}
 
       {open && (
         <div
@@ -53,8 +73,24 @@ export function HabitFormTrigger() {
           style={{ background: "var(--overlay)" }}
         >
           <div className="w-full max-w-md space-y-5 rounded-lg border border-line bg-card p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-navy">Nuevo hábito</h2>
+            <h2 className="text-lg font-semibold text-navy">
+              {isEdit ? "Editar hábito" : "Nuevo hábito"}
+            </h2>
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+              {isEdit && habit && (
+                <>
+                  <input type="hidden" name="id" value={habit.id} />
+                  <input type="hidden" name="icon" value={habit.icon} />
+                  <input type="hidden" name="targetPerDay" value={habit.targetPerDay} />
+                  <input type="hidden" name="gracePerWeek" value={habit.gracePerWeek} />
+                  <input type="hidden" name="targetPerWeek" value={habit.targetPerWeek ?? ""} />
+                  <input
+                    type="hidden"
+                    name="weekdays"
+                    value={habit.weekdays ? JSON.stringify(habit.weekdays) : ""}
+                  />
+                </>
+              )}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-faint">
                   Nombre
@@ -63,6 +99,7 @@ export function HabitFormTrigger() {
                   name="name"
                   required
                   maxLength={80}
+                  defaultValue={habit?.name}
                   placeholder="Ej: Meditar 10 min"
                   className="w-full rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy placeholder-faint focus:border-brand focus:outline-none"
                 />
@@ -98,6 +135,7 @@ export function HabitFormTrigger() {
                 </label>
                 <select
                   name="frequency"
+                  defaultValue={habit?.frequency ?? "daily"}
                   className="w-full rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy focus:border-brand focus:outline-none"
                 >
                   <option value="daily">Diario</option>
@@ -120,7 +158,7 @@ export function HabitFormTrigger() {
                   disabled={isPending}
                   className="flex-1 rounded-lg bg-brand py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover disabled:opacity-60"
                 >
-                  {isPending ? "Guardando..." : "Crear"}
+                  {isPending ? "Guardando..." : isEdit ? "Guardar" : "Crear"}
                 </button>
               </div>
             </form>

@@ -24,11 +24,12 @@ export function HabitHeatmap({
   justToggledDate?: string;
 }) {
   const reduced = useReducedMotion();
+  const columns = Math.max(1, Math.ceil(cells.length / 7));
 
   return (
     <div
       className="grid grid-flow-col grid-rows-7 gap-[3px]"
-      style={{ gridTemplateColumns: "repeat(17, 1fr)" }}
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {cells.map((cell) => {
         const isToggled = cell.date === justToggledDate;

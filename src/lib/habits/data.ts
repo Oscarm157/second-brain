@@ -258,6 +258,36 @@ export function computeStreak(
   return { current, best };
 }
 
+export type HabitStats = {
+  /** % de días completados en los últimos 7 días del rango. */
+  weekPct: number;
+  /** % de días completados en los últimos 30 días del rango. */
+  monthPct: number;
+  /** Total de días completados en todo el rango recibido. */
+  totalCompleted: number;
+};
+
+/** Pure. From grid cells (oldest→newest) + target, computes completion rates.
+ *  A day counts as completed when count >= targetPerDay.
+ */
+export function computeHabitStats(
+  cells: GridCell[],
+  targetPerDay: number,
+  createdAt: Date | null,
+): HabitStats {
+  const createdStr = createdAt ? toDateStr(createdAt) : null;
+  const sinceCreated = createdStr ? cells.filter((c) => c.date >= createdStr) : cells;
+  const done = (c: GridCell) => c.count >= targetPerDay;
+  const pct = (arr: GridCell[]) =>
+    arr.length === 0 ? 0 : Math.round((arr.filter(done).length / arr.length) * 100);
+
+  return {
+    weekPct: pct(sinceCreated.slice(-7)),
+    monthPct: pct(sinceCreated.slice(-30)),
+    totalCompleted: cells.filter(done).length,
+  };
+}
+
 const ACHIEVEMENT_DEFS = [
   { key: "first_habit", label: "Primer hábito", desc: "Completa tu primer hábito." },
   { key: "streak_7", label: "7 días", desc: "Mantén una racha de 7 días." },

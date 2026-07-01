@@ -98,6 +98,8 @@ export async function updateHabit(
     })
     .where(and(eq(habits.id, String(id)), eq(habits.ownerId, me.id)));
   revalidatePath("/habitos");
+  revalidatePath(`/habitos/${id}`);
+  revalidatePath("/");
 }
 
 export async function archiveHabit(id: string): Promise<void> {
@@ -108,6 +110,8 @@ export async function archiveHabit(id: string): Promise<void> {
     .set({ archived: true })
     .where(and(eq(habits.id, id), eq(habits.ownerId, me.id)));
   revalidatePath("/habitos");
+  revalidatePath("/");
+  revalidatePath(`/habitos/${id}`);
 }
 
 export async function toggleEntry(habitId: string, date: string): Promise<void> {
