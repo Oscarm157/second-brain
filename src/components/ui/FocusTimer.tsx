@@ -3,8 +3,6 @@
 import { useEffect, useState, useTransition } from "react";
 import { Pause, Play, RotateCcw, Square } from "lucide-react";
 
-import { logFocusSession } from "@/app/(app)/codigo/actions";
-
 const SESSION = 1500; // 25:00 en segundos
 
 function fmtClock(total: number) {
@@ -20,13 +18,11 @@ function fmtTotal(sec: number) {
 }
 
 export function FocusTimer({
-  cardId,
   focusSeconds,
-  onLogged,
+  onLog,
 }: {
-  cardId: string;
   focusSeconds: number;
-  onLogged: () => void;
+  onLog: (seconds: number) => Promise<void>;
 }) {
   const [remaining, setRemaining] = useState(SESSION);
   const [running, setRunning] = useState(false);
@@ -48,10 +44,9 @@ export function FocusTimer({
     setRunning(false);
     setRemaining(SESSION);
     startTransition(async () => {
-      await logFocusSession(cardId, SESSION);
-      onLogged();
+      await onLog(SESSION);
     });
-  }, [remaining, cardId, onLogged]);
+  }, [remaining, onLog]);
 
   function toggle() {
     if (remaining <= 0) return;
@@ -64,8 +59,7 @@ export function FocusTimer({
     setRemaining(SESSION);
     if (elapsed <= 0) return;
     startTransition(async () => {
-      await logFocusSession(cardId, elapsed);
-      onLogged();
+      await onLog(elapsed);
     });
   }
 

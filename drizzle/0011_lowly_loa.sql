@@ -1,0 +1,1 @@
+ALTER TABLE "personal_tasks" ADD COLUMN "focus_seconds" integer DEFAULT 0 NOT NULL;

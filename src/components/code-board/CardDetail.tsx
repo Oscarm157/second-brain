@@ -4,9 +4,9 @@ import { useState, useTransition } from "react";
 import { GitBranch, Link2, Pencil, Trash2 } from "lucide-react";
 
 import type { CodeCard, CodeCardNote } from "@/lib/schema";
-import { addNote, deleteCard } from "@/app/(app)/codigo/actions";
+import { addNote, deleteCard, logFocusSession } from "@/app/(app)/codigo/actions";
 import { CardForm } from "./CardForm";
-import { FocusTimer } from "./FocusTimer";
+import { FocusTimer } from "@/components/ui/FocusTimer";
 
 const PRIORITY_LABEL: Record<string, string> = { low: "Baja", med: "Media", high: "Alta" };
 
@@ -100,7 +100,13 @@ export function CardDetail({
         </div>
       </div>
 
-      <FocusTimer cardId={card.id} focusSeconds={card.focusSeconds} onLogged={onRefresh} />
+      <FocusTimer
+        focusSeconds={card.focusSeconds}
+        onLog={async (s) => {
+          await logFocusSession(card.id, s);
+          onRefresh();
+        }}
+      />
 
       {(card.repo || card.prUrl) && (
         <div className="flex flex-wrap gap-3 text-sm">

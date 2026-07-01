@@ -298,6 +298,7 @@ export const personalTasks = pgTable("personal_tasks", {
   dueDate: date("due_date"),
   status: text("status").$type<PersonalTaskStatus>().notNull().default("todo"),
   priority: integer("priority").notNull().default(0),
+  focusSeconds: integer("focus_seconds").notNull().default(0),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),

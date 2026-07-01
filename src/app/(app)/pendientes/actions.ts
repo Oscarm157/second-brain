@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
@@ -86,5 +86,35 @@ export async function deleteTask(id: string): Promise<void> {
   await db
     .delete(personalTasks)
     .where(and(eq(personalTasks.id, id), eq(personalTasks.ownerId, me.id)));
+  revalidatePath("/pendientes");
+}
+
+const focusSchema = z.object({
+  taskId: uuid,
+  seconds: z.number().int().positive().max(14400),
+});
+
+export async function logFocusSession(
+  taskId: string,
+  seconds: number,
+): Promise<void> {
+  const me = await requireUser();
+  const parsed = focusSchema.safeParse({ taskId, seconds });
+  if (!parsed.success) return;
+
+  // Verificar que la tarea es del usuario antes de acumularle tiempo.
+  const [task] = await db
+    .select({ id: personalTasks.id })
+    .from(personalTasks)
+    .where(and(eq(personalTasks.id, parsed.data.taskId), eq(personalTasks.ownerId, me.id)));
+  if (!task) return;
+
+  await db
+    .update(personalTasks)
+    .set({
+      focusSeconds: sql`${personalTasks.focusSeconds} + ${parsed.data.seconds}`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(personalTasks.id, parsed.data.taskId), eq(personalTasks.ownerId, me.id)));
   revalidatePath("/pendientes");
 }

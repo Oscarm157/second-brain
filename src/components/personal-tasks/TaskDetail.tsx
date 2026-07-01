@@ -5,7 +5,8 @@ import { Star, Trash2 } from "lucide-react";
 
 import type { PersonalTask } from "@/lib/schema";
 import { Drawer } from "@/components/code-board/Drawer";
-import { deleteTask, updateTask } from "@/app/(app)/pendientes/actions";
+import { FocusTimer } from "@/components/ui/FocusTimer";
+import { deleteTask, logFocusSession, updateTask } from "@/app/(app)/pendientes/actions";
 
 export function TaskDetail({
   task,
@@ -59,6 +60,13 @@ function TaskDetailBody({ task, onClose }: { task: PersonalTask; onClose: () => 
 
   return (
     <div className="space-y-6">
+      <FocusTimer
+        focusSeconds={task.focusSeconds}
+        onLog={async (s) => {
+          await logFocusSession(task.id, s);
+        }}
+      />
+
       <div>
         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-faint">
           Título
