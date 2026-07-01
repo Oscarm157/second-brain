@@ -32,15 +32,12 @@ export function Drawer({
         onClick={onClose}
         className="absolute inset-0 bg-overlay backdrop-blur-sm"
       />
-      <aside
-        className="relative flex h-full w-full max-w-xl flex-col border-l border-[var(--h-border)] shadow-2xl"
-        style={{ background: "var(--h-canvas-alt)", color: "var(--h-text)" }}
-      >
-        <header className="flex items-start justify-between gap-3 border-b border-[var(--h-border)] px-6 py-4">
+      <aside className="relative flex h-full w-full max-w-xl flex-col border-l border-border bg-card text-navy shadow-2xl">
+        <header className="flex items-start justify-between gap-3 border-b border-border px-6 py-4">
           <div className="min-w-0">{title}</div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[var(--h-text-secondary)] transition-colors hover:bg-[var(--h-surface-2)] hover:text-[var(--h-text)]"
+            className="rounded-lg p-1.5 text-ink transition-colors hover:bg-secondary hover:text-navy"
           >
             <X className="size-5" />
           </button>

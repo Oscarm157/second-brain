@@ -65,17 +65,17 @@ export function CodeBoard({
         ))}
         <button
           onClick={() => setCreating(true)}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-[var(--h-blue)] px-3 py-1.5 text-sm font-semibold text-[var(--h-on-accent)]"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover"
         >
           <Plus className="size-4" /> Nueva card
         </button>
       </div>
 
       {cards.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--h-border)] py-16 text-center">
-          <p className="text-[var(--h-text-secondary)]">Sin cards todavía.</p>
-          <p className="mt-1 text-sm text-[var(--h-text-faint)]">
-            Crea la primera o agrégala desde la terminal con <code className="text-[var(--h-text-secondary)]">npm run kanban -- add</code>.
+        <div className="rounded-lg border border-dashed border-border py-16 text-center">
+          <p className="text-ink">Sin cards todavía.</p>
+          <p className="mt-1 text-sm text-faint">
+            Crea la primera o agrégala desde la terminal con <code className="text-ink">npm run kanban -- add</code>.
           </p>
         </div>
       ) : (
@@ -86,22 +86,22 @@ export function CodeBoard({
           onMove={onMove}
           onCardClick={openCard}
           renderCard={(c) => (
-            <article className="cursor-pointer rounded-xl border border-[var(--h-border)] bg-[var(--h-surface)] p-3 transition-colors hover:border-[var(--h-surface-2)]">
+            <article className="cursor-pointer rounded-lg border border-border bg-card p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-start gap-2">
                 <span
                   className="mt-1.5 size-2 shrink-0 rounded-full"
                   style={{ background: PRIORITY_DOT[c.priority] ?? "#6f6d82" }}
                 />
-                <p className="text-sm font-medium leading-snug text-[var(--h-text)]">{c.title}</p>
+                <p className="text-sm font-medium leading-snug text-navy">{c.title}</p>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-4">
                 {filter === null ? (
-                  <span className="rounded bg-[var(--h-surface-2)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--h-text-secondary)]">
+                  <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] font-medium text-ink">
                     {c.project}
                   </span>
                 ) : null}
                 {c.labels?.slice(0, 3).map((l) => (
-                  <span key={l} className="text-[11px] text-[var(--h-text-faint)]">
+                  <span key={l} className="text-[11px] text-faint">
                     #{l}
                   </span>
                 ))}
@@ -116,7 +116,7 @@ export function CodeBoard({
         onClose={() => setDetail(null)}
         title={
           detail ? (
-            <h3 className="text-lg font-semibold leading-tight text-[var(--h-text)]">
+            <h3 className="text-lg font-semibold leading-tight text-navy">
               {detail.card.title}
             </h3>
           ) : null
@@ -135,7 +135,7 @@ export function CodeBoard({
       <Drawer
         open={creating}
         onClose={() => setCreating(false)}
-        title={<h3 className="text-lg font-semibold text-[var(--h-text)]">Nueva card</h3>}
+        title={<h3 className="text-lg font-semibold text-navy">Nueva card</h3>}
       >
         <CardForm projects={projects} onDone={() => setCreating(false)} />
       </Drawer>
@@ -156,10 +156,10 @@ function FilterChip({
     <button
       onClick={onClick}
       className={
-        "rounded-full px-3 py-1.5 text-sm font-medium transition-colors " +
+        "rounded-md px-3 py-1.5 text-sm font-medium transition-colors " +
         (active
-          ? "bg-[var(--h-surface-2)] text-[var(--h-text)]"
-          : "text-[var(--h-text-secondary)] hover:bg-[var(--h-surface)] hover:text-[var(--h-text)]")
+          ? "bg-secondary text-navy"
+          : "text-ink hover:bg-secondary hover:text-navy")
       }
     >
       {label}

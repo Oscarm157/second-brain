@@ -6,6 +6,7 @@ import { GitBranch, Link2, Pencil, Trash2 } from "lucide-react";
 import type { CodeCard, CodeCardNote } from "@/lib/schema";
 import { addNote, deleteCard } from "@/app/(app)/codigo/actions";
 import { CardForm } from "./CardForm";
+import { FocusTimer } from "./FocusTimer";
 
 const PRIORITY_LABEL: Record<string, string> = { low: "Baja", med: "Media", high: "Alta" };
 
@@ -70,42 +71,44 @@ export function CardDetail({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="rounded-md bg-[var(--h-surface-2)] px-2 py-0.5 font-medium text-[var(--h-text-secondary)]">
+        <span className="rounded-md bg-secondary px-2 py-0.5 font-medium text-ink">
           {card.project}
         </span>
-        <span className="text-[var(--h-text-faint)]">·</span>
-        <span className="text-[var(--h-text-secondary)]">
+        <span className="text-faint">·</span>
+        <span className="text-ink">
           Prioridad {PRIORITY_LABEL[card.priority] ?? card.priority}
         </span>
         {card.labels?.map((l) => (
-          <span key={l} className="rounded-md border border-[var(--h-border)] px-2 py-0.5 text-[var(--h-text-secondary)]">
+          <span key={l} className="rounded-md border border-line px-2 py-0.5 text-ink">
             {l}
           </span>
         ))}
         <div className="ml-auto flex gap-1">
           <button
             onClick={() => setEditing(true)}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[var(--h-text-secondary)] hover:bg-[var(--h-surface-2)] hover:text-[var(--h-text)]"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-ink hover:bg-secondary hover:text-navy"
           >
             <Pencil className="size-3.5" /> Editar
           </button>
           <button
             onClick={onDelete}
             disabled={pending}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[var(--h-text-secondary)] hover:bg-[var(--h-surface-2)] hover:text-alert"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-ink hover:bg-secondary hover:text-alert"
           >
             <Trash2 className="size-3.5" /> Borrar
           </button>
         </div>
       </div>
 
+      <FocusTimer cardId={card.id} focusSeconds={card.focusSeconds} onLogged={onRefresh} />
+
       {(card.repo || card.prUrl) && (
         <div className="flex flex-wrap gap-3 text-sm">
           {card.repo ? (
-            <span className="inline-flex items-center gap-1.5 text-[var(--h-text-secondary)]">
+            <span className="inline-flex items-center gap-1.5 text-ink">
               <GitBranch className="size-4" />
               {card.repo}
-              {card.branch ? <span className="text-[var(--h-text-faint)]">@{card.branch}</span> : null}
+              {card.branch ? <span className="text-faint">@{card.branch}</span> : null}
             </span>
           ) : null}
           {card.prUrl ? (
@@ -122,32 +125,32 @@ export function CardDetail({
       )}
 
       <div>
-        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--h-text-faint)]">
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-faint">
           Spec
         </h4>
         {card.spec ? (
-          <pre className="whitespace-pre-wrap rounded-xl border border-[var(--h-border)] bg-[var(--h-surface)] p-4 font-mono text-[13px] leading-relaxed text-[var(--h-text)]">
+          <pre className="whitespace-pre-wrap rounded-lg border border-line bg-secondary p-4 font-mono text-[13px] leading-relaxed text-navy">
             {card.spec}
           </pre>
         ) : (
-          <p className="text-sm text-[var(--h-text-faint)]">Sin spec todavía.</p>
+          <p className="text-sm text-faint">Sin spec todavía.</p>
         )}
       </div>
 
       <div>
-        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--h-text-faint)]">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-faint">
           Notas y preguntas ({notes.length})
         </h4>
         <div className="space-y-3">
           {notes.length === 0 ? (
-            <p className="text-sm text-[var(--h-text-faint)]">
+            <p className="text-sm text-faint">
               Sin notas. Aquí Claude deja dudas y tú respondes.
             </p>
           ) : (
             notes.map((n) => (
               <div
                 key={n.id}
-                className="rounded-xl border border-[var(--h-border)] bg-[var(--h-surface)] p-3"
+                className="rounded-lg border border-line bg-secondary p-3"
               >
                 <div className="mb-1 flex items-center gap-2 text-xs">
                   <span
@@ -160,9 +163,9 @@ export function CardDetail({
                   >
                     {n.author === "claude" ? "Claude" : "Oscar"}
                   </span>
-                  <span className="text-[var(--h-text-faint)]">{fmt(n.createdAt)}</span>
+                  <span className="text-faint">{fmt(n.createdAt)}</span>
                 </div>
-                <p className="whitespace-pre-wrap text-sm text-[var(--h-text)]">{n.body}</p>
+                <p className="whitespace-pre-wrap text-sm text-navy">{n.body}</p>
               </div>
             ))
           )}
@@ -174,13 +177,13 @@ export function CardDetail({
             onChange={(e) => setBody(e.target.value)}
             rows={3}
             placeholder="Responder o anotar algo…"
-            className="w-full rounded-lg border border-[var(--h-border)] bg-[var(--h-surface)] px-3 py-2 text-sm text-[var(--h-text)] placeholder:text-[var(--h-text-faint)] outline-none focus:border-[var(--h-blue)]"
+            className="w-full rounded-md border border-line bg-secondary px-3 py-2 text-sm text-navy placeholder:text-faint outline-none focus:border-brand"
           />
           <div className="mt-2 flex justify-end">
             <button
               onClick={submitNote}
               disabled={pending || !body.trim()}
-              className="rounded-lg bg-[var(--h-surface-2)] px-4 py-2 text-sm font-semibold text-[var(--h-text)] disabled:opacity-50"
+              className="rounded-md bg-secondary px-4 py-2 text-sm font-semibold text-navy disabled:opacity-50"
             >
               Agregar nota
             </button>

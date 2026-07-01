@@ -185,13 +185,15 @@ function Column<T extends KanbanItem>({
 }) {
   const { setNodeRef } = useDroppable({ id: def.id });
   return (
-    <div className="flex min-h-[180px] flex-col rounded-2xl border border-[var(--h-border)] bg-[var(--h-canvas-alt)]">
+    <div className="flex min-h-[180px] flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="flex items-center gap-2 px-4 pb-2 pt-3.5">
         {def.accent ? (
           <span className="size-2.5 rounded-full" style={{ background: def.accent }} />
         ) : null}
-        <span className="text-sm font-semibold text-[var(--h-text)]">{def.label}</span>
-        <span className="text-xs font-medium text-[var(--h-text-faint)]">{items.length}</span>
+        <span className="text-sm font-semibold text-navy">{def.label}</span>
+        <span className="rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium text-ink">
+          {items.length}
+        </span>
       </div>
       <SortableContext
         id={def.id}
@@ -205,7 +207,7 @@ function Column<T extends KanbanItem>({
             </SortableCard>
           ))}
           {items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[var(--h-border)] py-6 text-center text-xs text-[var(--h-text-faint)]">
+            <div className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-faint">
               Vacío
             </div>
           ) : null}

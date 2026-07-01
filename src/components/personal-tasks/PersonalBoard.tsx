@@ -37,14 +37,14 @@ function TaskCard({ task }: { task: PersonalTask }) {
   const starred = task.priority > 0;
 
   return (
-    <article className="group rounded-xl border border-[var(--h-border)] bg-[var(--h-surface)] p-3">
+    <article className="group rounded-lg border border-border bg-card p-3">
       <div className="flex items-start gap-2">
         <p
           className={
             "flex-1 text-sm leading-snug " +
             (task.status === "done"
-              ? "text-[var(--h-text-faint)] line-through"
-              : "text-[var(--h-text)]")
+              ? "text-faint line-through"
+              : "text-navy")
           }
         >
           {task.title}
@@ -54,7 +54,7 @@ function TaskCard({ task }: { task: PersonalTask }) {
             e.stopPropagation();
             startTransition(() => void updateTask({ id: task.id, priority: starred ? 0 : 1 }));
           }}
-          className={starred ? "text-[var(--h-amber)]" : "text-[var(--h-text-faint)] opacity-0 group-hover:opacity-100"}
+          className={starred ? "text-warn" : "text-faint opacity-0 group-hover:opacity-100"}
           aria-label="Prioridad"
         >
           <Star className="size-4" fill={starred ? "currentColor" : "none"} />
@@ -64,14 +64,14 @@ function TaskCard({ task }: { task: PersonalTask }) {
             e.stopPropagation();
             startTransition(() => void deleteTask(task.id));
           }}
-          className="text-[var(--h-text-faint)] opacity-0 transition-colors hover:text-alert group-hover:opacity-100"
+          className="text-faint opacity-0 transition-colors hover:text-alert group-hover:opacity-100"
           aria-label="Borrar"
         >
           <X className="size-4" />
         </button>
       </div>
       {task.notes ? (
-        <p className="mt-1.5 text-xs text-[var(--h-text-secondary)]">{task.notes}</p>
+        <p className="mt-1.5 text-xs text-ink">{task.notes}</p>
       ) : null}
     </article>
   );
@@ -104,7 +104,7 @@ function QuickAdd({ status }: { status: string }) {
         onChange={(e) => setValue(e.target.value)}
         disabled={pending}
         placeholder="+ Agregar"
-        className="w-full rounded-lg border border-transparent bg-[var(--h-surface)] px-3 py-2 text-sm text-[var(--h-text)] placeholder:text-[var(--h-text-faint)] outline-none focus:border-[var(--h-border)]"
+        className="w-full rounded-md border border-transparent bg-secondary px-3 py-2 text-sm text-navy placeholder:text-faint outline-none focus:border-border"
       />
     </form>
   );

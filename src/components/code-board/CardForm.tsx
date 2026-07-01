@@ -6,8 +6,8 @@ import type { CodeCard } from "@/lib/schema";
 import { createCard, updateCard } from "@/app/(app)/codigo/actions";
 
 const inputCls =
-  "w-full rounded-lg border border-[var(--h-border)] bg-[var(--h-surface)] px-3 py-2 text-sm text-[var(--h-text)] placeholder:text-[var(--h-text-faint)] outline-none focus:border-[var(--h-blue)]";
-const labelCls = "mb-1 block text-xs font-medium text-[var(--h-text-secondary)]";
+  "w-full rounded-md border border-line bg-secondary px-3 py-2 text-sm text-navy placeholder:text-faint outline-none focus:border-brand";
+const labelCls = "mb-1 block text-xs font-medium uppercase tracking-wide text-faint";
 
 export function CardForm({
   card,
@@ -120,20 +120,20 @@ export function CardForm({
         </div>
       </div>
 
-      {error ? <p className="text-sm text-[var(--alert)]">{error}</p> : null}
+      {error ? <p className="text-sm text-alert">{error}</p> : null}
 
       <div className="flex justify-end gap-2 pt-1">
         <button
           type="button"
           onClick={onDone}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--h-text-secondary)] hover:text-[var(--h-text)]"
+          className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:text-navy"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-[var(--h-blue)] px-4 py-2 text-sm font-semibold text-[var(--h-on-accent)] disabled:opacity-60"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover disabled:opacity-60"
         >
           {pending ? "Guardando…" : editing ? "Guardar" : "Crear card"}
         </button>
