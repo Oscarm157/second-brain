@@ -14,6 +14,12 @@ const uuid = z.string().uuid();
 const createSchema = z.object({
   title: z.string().trim().min(1, "Escribe algo.").max(200),
   status: z.enum(STATUSES).default("todo"),
+  notes: z.string().trim().max(2000).optional(),
+  dueDate: z
+    .union([z.literal(""), z.string().date()])
+    .transform((v) => (v === "" ? undefined : v))
+    .optional(),
+  priority: z.coerce.number().int().min(0).max(2).optional(),
 });
 
 export async function createTask(
@@ -27,6 +33,9 @@ export async function createTask(
     ownerId: me.id,
     title: parsed.data.title,
     status: parsed.data.status,
+    notes: parsed.data.notes ?? null,
+    dueDate: parsed.data.dueDate ?? null,
+    priority: parsed.data.priority ?? 0,
   });
   revalidatePath("/pendientes");
 }
