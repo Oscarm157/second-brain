@@ -288,6 +288,55 @@ export function computeHabitStats(
   };
 }
 
+export type GoalProgress = {
+  current: number;
+  target: number;
+  pct: number;
+  periodLabel: string;
+};
+
+/** Pure. From grid cells (oldest→newest) computes progress toward a calendar-period goal.
+ *  Returns null when the habit has no goal set. Counts days where count >= targetPerDay
+ *  from the start of the current calendar period (ISO week starts Monday). Tolerates a
+ *  cells array that doesn't reach the period start: it counts only what it has.
+ */
+export function computeGoalProgress(
+  cells: GridCell[],
+  habit: {
+    targetPerDay: number;
+    goalPeriod: "week" | "month" | "year" | null;
+    goalTarget: number | null;
+  },
+): GoalProgress | null {
+  const { targetPerDay, goalPeriod, goalTarget } = habit;
+  if (goalPeriod === null || goalTarget === null) return null;
+
+  const now = new Date();
+  let start: Date;
+  let periodLabel: string;
+  if (goalPeriod === "week") {
+    start = new Date(now);
+    const day = start.getDay(); // 0=Sun
+    const diff = (day + 6) % 7; // days since Monday
+    start.setDate(start.getDate() - diff);
+    periodLabel = "esta semana";
+  } else if (goalPeriod === "month") {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    periodLabel = "este mes";
+  } else {
+    start = new Date(now.getFullYear(), 0, 1);
+    periodLabel = "este año";
+  }
+
+  const startStr = toDateStr(start);
+  const current = cells.filter(
+    (c) => c.date >= startStr && c.count >= targetPerDay,
+  ).length;
+  const pct = Math.min(100, Math.round((current / goalTarget) * 100));
+
+  return { current, target: goalTarget, pct, periodLabel };
+}
+
 const ACHIEVEMENT_DEFS = [
   { key: "first_habit", label: "Primer hábito", desc: "Completa tu primer hábito." },
   { key: "streak_7", label: "7 días", desc: "Mantén una racha de 7 días." },

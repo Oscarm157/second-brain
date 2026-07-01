@@ -26,7 +26,8 @@ export default async function HabitosPage() {
 
   const grids = await Promise.all(
     habitsList.map(async (h) => {
-      const cells = await getHabitGrid(me.id, h.id, 119);
+      const days = h.goalPeriod === "year" ? 370 : 119;
+      const cells = await getHabitGrid(me.id, h.id, days);
       return { habitId: h.id, cells };
     }),
   );
