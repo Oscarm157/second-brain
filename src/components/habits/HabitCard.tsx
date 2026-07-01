@@ -5,8 +5,9 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { HabitHeatmap } from "./HabitHeatmap";
 import { StreakBadge } from "./StreakBadge";
+import { GoalBarCompact } from "./GoalBar";
 import { toggleEntry } from "@/app/(app)/habitos/actions";
-import { computeStreak, computeHabitStats } from "@/lib/habits/data";
+import { computeStreak, computeHabitStats, computeGoalProgress } from "@/lib/habits/data";
 import type { GridCell } from "@/lib/habits/data";
 import type { Habit } from "@/lib/schema";
 import { todayISO } from "@/lib/habits/date";
@@ -25,6 +26,7 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
     .map((c) => ({ date: c.date, count: c.count }));
   const streak = computeStreak(entries, habit);
   const stats = computeHabitStats(cells, habit.targetPerDay, habit.createdAt);
+  const goal = computeGoalProgress(cells, habit);
 
   async function handleToggle() {
     if (pending) return;
@@ -68,13 +70,16 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
         <StreakBadge streak={streak.current} />
       </div>
 
-      {/* Heatmap */}
-      <HabitHeatmap cells={cells} color={habit.color} justToggledDate={toggled} />
+      {/* Heatmap: siempre los últimos 119 días, aunque `cells` traiga más (meta anual) */}
+      <HabitHeatmap cells={cells.slice(-119)} color={habit.color} justToggledDate={toggled} />
 
       {/* Stats */}
-      <p className="text-xs text-faint">
-        Mejor racha: {streak.best} {streak.best === 1 ? "día" : "días"} · {stats.monthPct}% este mes
-      </p>
+      <div className="space-y-2">
+        <p className="text-xs text-faint">
+          Mejor racha: {streak.best} {streak.best === 1 ? "día" : "días"} · {stats.monthPct}% este mes
+        </p>
+        {goal && <GoalBarCompact goal={goal} color={habit.color} />}
+      </div>
 
       {/* Complete button */}
       <motion.button

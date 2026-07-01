@@ -23,6 +23,7 @@ export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(habit?.color ?? "#34d399");
+  const [goalPeriod, setGoalPeriod] = useState(habit?.goalPeriod ?? "");
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -43,6 +44,7 @@ export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
       } else {
         formRef.current?.reset();
         setSelectedColor("#34d399");
+        setGoalPeriod("");
       }
     });
   }
@@ -141,6 +143,36 @@ export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
                   <option value="daily">Diario</option>
                   <option value="weekly">Semanal</option>
                 </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                  Meta
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    name="goalPeriod"
+                    value={goalPeriod}
+                    onChange={(e) => setGoalPeriod(e.target.value)}
+                    className="flex-1 rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy focus:border-brand focus:outline-none"
+                  >
+                    <option value="">Sin meta</option>
+                    <option value="week">Semana</option>
+                    <option value="month">Mes</option>
+                    <option value="year">Año</option>
+                  </select>
+                  {goalPeriod && (
+                    <input
+                      name="goalTarget"
+                      type="number"
+                      min={1}
+                      required
+                      defaultValue={habit?.goalTarget ?? ""}
+                      placeholder="Veces"
+                      className="w-24 rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy placeholder-faint focus:border-brand focus:outline-none"
+                    />
+                  )}
+                </div>
               </div>
 
               {error && <p className="text-sm text-alert">{error}</p>}

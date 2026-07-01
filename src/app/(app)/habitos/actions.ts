@@ -33,6 +33,14 @@ const habitSchema = z.object({
     .optional(),
   targetPerDay: z.coerce.number().int().min(1).max(100).default(1),
   gracePerWeek: z.coerce.number().int().min(0).max(7).default(1),
+  goalPeriod: z
+    .union([z.literal(""), z.enum(["week", "month", "year"])])
+    .transform((v) => (v === "" ? null : v))
+    .optional(),
+  goalTarget: z
+    .union([z.literal(""), z.coerce.number().int().min(1).max(10000)])
+    .transform((v) => (v === "" ? null : v))
+    .optional(),
   weekdays: z
     .string()
     .optional()
@@ -63,6 +71,8 @@ export async function createHabit(
     targetPerWeek: d.targetPerWeek ?? null,
     targetPerDay: d.targetPerDay,
     gracePerWeek: d.gracePerWeek,
+    goalPeriod: d.goalPeriod ?? null,
+    goalTarget: d.goalTarget ?? null,
     weekdays: d.weekdays ?? null,
   });
   revalidatePath("/habitos");
@@ -94,6 +104,8 @@ export async function updateHabit(
       targetPerWeek: d.targetPerWeek ?? null,
       targetPerDay: d.targetPerDay,
       gracePerWeek: d.gracePerWeek,
+      goalPeriod: d.goalPeriod ?? null,
+      goalTarget: d.goalTarget ?? null,
       weekdays: d.weekdays ?? null,
     })
     .where(and(eq(habits.id, String(id)), eq(habits.ownerId, me.id)));

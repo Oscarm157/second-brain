@@ -8,8 +8,10 @@ import {
   getHabitGrid,
   computeStreak,
   computeHabitStats,
+  computeGoalProgress,
 } from "@/lib/habits/data";
 import { HabitHeatmap } from "@/components/habits/HabitHeatmap";
+import { GoalBar } from "@/components/habits/GoalBar";
 import { HabitFormTrigger } from "@/components/habits/HabitForm";
 import { ArchiveHabitButton } from "./archive-habit";
 import { Tile } from "@/components/habits/Tile";
@@ -32,12 +34,14 @@ export default async function HabitDetailPage({
   const habit = await getHabit(me.id, id);
   if (!habit) notFound();
 
-  const cells = await getHabitGrid(me.id, id, 365);
+  // 370 en vez de 365 para que una meta anual no pierda el 1° de enero en años bisiestos.
+  const cells = await getHabitGrid(me.id, id, habit.goalPeriod === "year" ? 370 : 365);
   const streak = computeStreak(
     cells.map((c) => ({ date: c.date, count: c.count })),
     habit,
   );
   const stats = computeHabitStats(cells, habit.targetPerDay, habit.createdAt);
+  const goal = computeGoalProgress(cells, habit);
 
   const targetLabel =
     habit.targetPerDay === 1 ? "Una vez al día" : `${habit.targetPerDay}× al día`;
@@ -93,6 +97,9 @@ export default async function HabitDetailPage({
           sub="en el último año"
         />
       </section>
+
+      {/* Progreso de meta */}
+      {goal && <GoalBar goal={goal} />}
 
       {/* Heatmap de año completo */}
       <section className="rounded-xl border border-line bg-card p-5 sm:p-6">

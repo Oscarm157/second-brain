@@ -240,6 +240,8 @@ export const habits = pgTable("habits", {
   weekdays: jsonb("weekdays").$type<number[]>(),
   targetPerDay: integer("target_per_day").notNull().default(1),
   gracePerWeek: integer("grace_per_week").notNull().default(1),
+  goalPeriod: text("goal_period").$type<"week" | "month" | "year">(),
+  goalTarget: integer("goal_target"),
   position: integer("position").notNull().default(0),
   archived: boolean("archived").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
