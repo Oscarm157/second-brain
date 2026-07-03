@@ -61,6 +61,7 @@ function TaskDetailBody({ task, onClose }: { task: PersonalTask; onClose: () => 
   return (
     <div className="space-y-6">
       <FocusTimer
+        storageKey={`focus:task:${task.id}`}
         focusSeconds={task.focusSeconds}
         onLog={async (s) => {
           await logFocusSession(task.id, s);
