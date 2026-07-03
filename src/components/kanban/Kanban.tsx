@@ -84,6 +84,13 @@ export function Kanban<T extends KanbanItem>({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
+  // El grid se ajusta al número de columnas: 3 columnas quedan más anchas que
+  // forzarlas a un grid de 4 (que dejaría un hueco vacío a la derecha).
+  const xlCols =
+    { 1: "xl:grid-cols-1", 2: "xl:grid-cols-2", 3: "xl:grid-cols-3", 4: "xl:grid-cols-4" }[
+      columns.length
+    ] ?? "xl:grid-cols-4";
+
   const byId = new Map(items.map((it) => [it.id, it]));
   const activeItem = activeId ? byId.get(activeId) : undefined;
 
@@ -149,7 +156,7 @@ export function Kanban<T extends KanbanItem>({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${xlCols}`}>
         {columns.map((col) => (
           <Column
             key={col.id}
