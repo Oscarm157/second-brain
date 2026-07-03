@@ -101,6 +101,7 @@ export function CardDetail({
       </div>
 
       <FocusTimer
+        storageKey={`focus:card:${card.id}`}
         focusSeconds={card.focusSeconds}
         onLog={async (s) => {
           await logFocusSession(card.id, s);
