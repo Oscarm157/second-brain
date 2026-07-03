@@ -1,4 +1,4 @@
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { personalTasks, type PersonalTask } from "@/lib/schema";
@@ -8,7 +8,11 @@ export async function listTasks(ownerId: string): Promise<PersonalTask[]> {
     .select()
     .from(personalTasks)
     .where(eq(personalTasks.ownerId, ownerId))
-    .orderBy(asc(personalTasks.position), asc(personalTasks.createdAt));
+    .orderBy(
+      desc(personalTasks.priority),
+      asc(personalTasks.position),
+      asc(personalTasks.createdAt),
+    );
 }
 
 /** Resumen para el hub: pendientes abiertos + peek de títulos por hacer / haciendo. */
