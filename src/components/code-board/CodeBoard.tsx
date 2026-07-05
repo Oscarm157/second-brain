@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 import type { CodeCard, CodeCardNote } from "@/lib/schema";
 import { Kanban } from "@/components/kanban/Kanban";
@@ -24,16 +24,28 @@ type Detail = { card: CodeCard; notes: CodeCardNote[] };
 export function CodeBoard({
   cards,
   projects,
+  userName,
 }: {
   cards: CodeCard[];
   projects: string[];
+  userName: string;
 }) {
   const [filter, setFilter] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<Detail | null>(null);
   const [creating, setCreating] = useState(false);
   const [, startTransition] = useTransition();
 
-  const visible = filter ? cards.filter((c) => c.project === filter) : cards;
+  const q = query.trim().toLowerCase();
+  const visible = cards.filter((c) => {
+    if (filter && c.project !== filter) return false;
+    if (!q) return true;
+    return (
+      c.title.toLowerCase().includes(q) ||
+      (c.spec ?? "").toLowerCase().includes(q) ||
+      (c.labels ?? []).some((l) => l.toLowerCase().includes(q))
+    );
+  });
 
   const statusCounts = { backlog: 0, in_progress: 0, blocked: 0, done: 0 };
   for (const c of cards) statusCounts[c.status] += 1;
@@ -62,9 +74,18 @@ export function CodeBoard({
         {projects.map((p) => (
           <FilterChip key={p} active={filter === p} onClick={() => setFilter(p)} label={p} />
         ))}
+        <div className="relative ml-auto w-full sm:w-56">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar card"
+            className="w-full rounded-lg border border-border bg-card py-1.5 pl-9 pr-3 text-sm text-navy placeholder:text-faint outline-none focus:border-brand"
+          />
+        </div>
         <button
           onClick={() => setCreating(true)}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-hover"
         >
           <Plus className="size-4" /> Nueva card
         </button>
@@ -84,7 +105,7 @@ export function CodeBoard({
           columnOf={(c) => c.status}
           onMove={onMove}
           onCardClick={openCard}
-          disableDnd={filter !== null}
+          disableDnd={filter !== null || q !== ""}
           renderCard={(c) => (
             <article className="cursor-pointer rounded-lg border border-border bg-card p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-start gap-2">
@@ -129,6 +150,7 @@ export function CodeBoard({
             onRefresh={refreshDetail}
             onClose={() => setDetail(null)}
             statusCounts={statusCounts}
+            userName={userName}
           />
         ) : null}
       </Drawer>
