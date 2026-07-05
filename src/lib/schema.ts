@@ -298,6 +298,7 @@ export const personalTasks = pgTable("personal_tasks", {
   dueDate: date("due_date"),
   status: text("status").$type<PersonalTaskStatus>().notNull().default("todo"),
   priority: integer("priority").notNull().default(0),
+  labels: jsonb("labels").$type<string[]>().notNull().default([]),
   focusSeconds: integer("focus_seconds").notNull().default(0),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -305,6 +306,22 @@ export const personalTasks = pgTable("personal_tasks", {
 });
 
 export type PersonalTask = typeof personalTasks.$inferSelect;
+
+export const personalSubtasks = pgTable("personal_subtasks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  taskId: uuid("task_id")
+    .references(() => personalTasks.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title").notNull(),
+  done: boolean("done").notNull().default(false),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type PersonalSubtask = typeof personalSubtasks.$inferSelect;
 
 // ------- Módulo Código (kanban de desarrollo) -------
 

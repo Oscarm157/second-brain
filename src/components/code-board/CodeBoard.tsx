@@ -84,6 +84,7 @@ export function CodeBoard({
           columnOf={(c) => c.status}
           onMove={onMove}
           onCardClick={openCard}
+          disableDnd={filter !== null}
           renderCard={(c) => (
             <article className="cursor-pointer rounded-lg border border-border bg-card p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
               <div className="flex items-start gap-2">

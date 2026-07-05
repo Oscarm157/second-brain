@@ -59,6 +59,9 @@ interface KanbanProps<T extends KanbanItem> {
   onCardClick?: (item: T) => void;
   /** Contenido al pie de cada columna (p.ej. quick-add). */
   columnFooter?: (columnId: string) => ReactNode;
+  /** Desactiva el drag cuando `items` es un subconjunto filtrado (la posición sería la del
+   *  subconjunto, no la de la columna completa). El cambio de estado sigue por el detalle. */
+  disableDnd?: boolean;
 }
 
 export function Kanban<T extends KanbanItem>({
@@ -69,6 +72,7 @@ export function Kanban<T extends KanbanItem>({
   onMove,
   onCardClick,
   columnFooter,
+  disableDnd = false,
 }: KanbanProps<T>) {
   const [cols, setCols] = useState<Grouped<T>>(() => group(items, columns, columnOf));
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -83,10 +87,11 @@ export function Kanban<T extends KanbanItem>({
 
   // Ratón: arranca al mover 6px. Táctil: arranca al mantener 200ms (así el tap abre
   // el detalle y el scroll vertical no se rompe; solo mantener-y-arrastrar mueve la card).
-  const sensors = useSensors(
+  const allSensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
   );
+  const sensors = disableDnd ? [] : allSensors;
 
   // El grid se ajusta al número de columnas: 3 columnas quedan más anchas que
   // forzarlas a un grid de 4 (que dejaría un hueco vacío a la derecha).

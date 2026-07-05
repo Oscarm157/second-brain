@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, ne } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { personalTasks, type PersonalTask } from "@/lib/schema";
+import { personalTasks, personalSubtasks, type PersonalTask, type PersonalSubtask } from "@/lib/schema";
 
 export async function listTasks(ownerId: string): Promise<PersonalTask[]> {
   return db
@@ -13,6 +13,15 @@ export async function listTasks(ownerId: string): Promise<PersonalTask[]> {
       asc(personalTasks.position),
       asc(personalTasks.createdAt),
     );
+}
+
+/** Todas las subtareas del usuario, para agrupar por tarea en el cliente. */
+export async function listSubtasks(ownerId: string): Promise<PersonalSubtask[]> {
+  return db
+    .select()
+    .from(personalSubtasks)
+    .where(eq(personalSubtasks.ownerId, ownerId))
+    .orderBy(asc(personalSubtasks.position), asc(personalSubtasks.createdAt));
 }
 
 /** Resumen para el hub: pendientes abiertos + peek de títulos por hacer / haciendo. */
