@@ -2,9 +2,10 @@
 
 import { useTransition } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "motion/react";
-import { toggleEntry } from "@/app/(app)/habitos/actions";
+import { toggleEntry, incrementEntry } from "@/app/(app)/habitos/actions";
 import type { TodayHabit } from "@/lib/habits/data";
 import { todayISO } from "@/lib/habits/date";
+import { HabitIcon } from "./habit-icons";
 
 export function TodayList({ habits }: { habits: TodayHabit[] }) {
   const reduced = useReducedMotion();
@@ -16,6 +17,13 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
     const date = todayISO();
     startTransition(async () => {
       await toggleEntry(id, date);
+    });
+  }
+
+  function increment(id: string) {
+    const date = todayISO();
+    startTransition(async () => {
+      await incrementEntry(id, date);
     });
   }
 
@@ -41,19 +49,26 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
               className="flex items-center gap-3 rounded-md bg-secondary px-3 py-2.5"
             >
               <button
-                onClick={() => toggle(h.id)}
+                onClick={() => (h.targetPerDay > 1 ? increment(h.id) : toggle(h.id))}
                 disabled={isPending}
-                className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
-                style={{ borderColor: h.color }}
+                className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-bold tabular-nums transition-colors"
+                style={{ borderColor: h.color, color: h.color }}
                 aria-label={`Completar ${h.name}`}
-              />
+              >
+                {h.targetPerDay > 1 ? `+1` : ""}
+              </button>
               <div
                 className="flex size-6 shrink-0 items-center justify-center rounded-md text-sm"
                 style={{ background: `${h.color}22` }}
               >
-                <span style={{ color: h.color }}>✦</span>
+                <HabitIcon name={h.icon} className="size-3.5" style={{ color: h.color }} />
               </div>
               <span className="flex-1 text-sm text-navy">{h.name}</span>
+              {h.targetPerDay > 1 && (
+                <span className="text-xs tabular-nums text-faint">
+                  {h.completedToday}/{h.targetPerDay}
+                </span>
+              )}
             </motion.li>
           ))}
         </AnimatePresence>
@@ -72,7 +87,7 @@ export function TodayList({ habits }: { habits: TodayHabit[] }) {
               className="flex size-6 shrink-0 items-center justify-center rounded-md text-sm"
               style={{ background: `${h.color}22` }}
             >
-              <span style={{ color: h.color }}>✦</span>
+              <HabitIcon name={h.icon} className="size-3.5" style={{ color: h.color }} />
             </div>
             <span className="flex-1 text-sm line-through text-faint">{h.name}</span>
           </li>

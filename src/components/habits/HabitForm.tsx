@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
 import { createHabit, updateHabit } from "@/app/(app)/habitos/actions";
 import type { Habit } from "@/lib/schema";
+import { HABIT_ICONS, HabitIcon } from "./habit-icons";
 
 const COLORS = [
   { value: "#34d399", label: "Esmeralda" },
@@ -17,20 +18,42 @@ const COLORS = [
   { value: "#a3e635", label: "Lima" },
 ];
 
+// Lun→Dom, mapeados a getDay() (0=Dom). El orden visual empieza en lunes.
+const WEEKDAYS = [
+  { value: 1, label: "L" },
+  { value: 2, label: "M" },
+  { value: 3, label: "M" },
+  { value: 4, label: "J" },
+  { value: 5, label: "V" },
+  { value: 6, label: "S" },
+  { value: 0, label: "D" },
+];
+
 export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
   const isEdit = !!habit;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(habit?.color ?? "#34d399");
+  const [selectedIcon, setSelectedIcon] = useState(habit?.icon ?? "sparkles");
   const [goalPeriod, setGoalPeriod] = useState(habit?.goalPeriod ?? "");
+  const [frequency, setFrequency] = useState<string>(habit?.frequency ?? "daily");
+  const [weekdays, setWeekdays] = useState<number[]>(habit?.weekdays ?? []);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+
+  function toggleWeekday(day: number) {
+    setWeekdays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    );
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     fd.set("color", selectedColor);
+    fd.set("icon", selectedIcon);
+    fd.set("weekdays", frequency === "custom" ? JSON.stringify(weekdays) : "");
     setError(null);
     startTransition(async () => {
       const result = await (isEdit ? updateHabit(fd) : createHabit(fd));
@@ -44,7 +67,10 @@ export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
       } else {
         formRef.current?.reset();
         setSelectedColor("#34d399");
+        setSelectedIcon("sparkles");
         setGoalPeriod("");
+        setFrequency("daily");
+        setWeekdays([]);
       }
     });
   }
@@ -74,25 +100,12 @@ export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
           className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
           style={{ background: "var(--overlay)" }}
         >
-          <div className="w-full max-w-md space-y-5 rounded-lg border border-line bg-card p-6 shadow-lg">
+          <div className="max-h-[90vh] w-full max-w-md space-y-5 overflow-y-auto rounded-lg border border-line bg-card p-6 shadow-lg">
             <h2 className="text-lg font-semibold text-navy">
               {isEdit ? "Editar hábito" : "Nuevo hábito"}
             </h2>
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-              {isEdit && habit && (
-                <>
-                  <input type="hidden" name="id" value={habit.id} />
-                  <input type="hidden" name="icon" value={habit.icon} />
-                  <input type="hidden" name="targetPerDay" value={habit.targetPerDay} />
-                  <input type="hidden" name="gracePerWeek" value={habit.gracePerWeek} />
-                  <input type="hidden" name="targetPerWeek" value={habit.targetPerWeek ?? ""} />
-                  <input
-                    type="hidden"
-                    name="weekdays"
-                    value={habit.weekdays ? JSON.stringify(habit.weekdays) : ""}
-                  />
-                </>
-              )}
+              {isEdit && habit && <input type="hidden" name="id" value={habit.id} />}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-faint">
                   Nombre
@@ -133,16 +146,120 @@ export function HabitFormTrigger({ habit }: { habit?: Habit } = {}) {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                  Icono
+                </label>
+                <div className="grid grid-cols-9 gap-1.5">
+                  {HABIT_ICONS.map(({ key }) => {
+                    const active = selectedIcon === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setSelectedIcon(key)}
+                        className="flex aspect-square items-center justify-center rounded-md border transition-colors"
+                        style={{
+                          borderColor: active ? selectedColor : "var(--line)",
+                          background: active ? `${selectedColor}22` : "transparent",
+                          color: active ? selectedColor : "var(--ink)",
+                        }}
+                        aria-pressed={active}
+                        aria-label={key}
+                      >
+                        <HabitIcon name={key} className="size-4" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-faint">
                   Frecuencia
                 </label>
                 <select
                   name="frequency"
-                  defaultValue={habit?.frequency ?? "daily"}
+                  value={frequency}
+                  onChange={(e) => setFrequency(e.target.value)}
                   className="w-full rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy focus:border-brand focus:outline-none"
                 >
                   <option value="daily">Diario</option>
                   <option value="weekly">Semanal</option>
+                  <option value="custom">Días específicos</option>
                 </select>
+              </div>
+
+              {frequency === "custom" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                    Días
+                  </label>
+                  <div className="flex gap-1.5">
+                    {WEEKDAYS.map((d) => {
+                      const active = weekdays.includes(d.value);
+                      return (
+                        <button
+                          key={d.value}
+                          type="button"
+                          onClick={() => toggleWeekday(d.value)}
+                          className="flex size-9 items-center justify-center rounded-md border text-sm font-medium transition-colors"
+                          style={{
+                            borderColor: active ? selectedColor : "var(--line)",
+                            background: active ? `${selectedColor}22` : "transparent",
+                            color: active ? selectedColor : "var(--ink)",
+                          }}
+                          aria-pressed={active}
+                        >
+                          {d.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {frequency === "weekly" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                    Veces por semana
+                  </label>
+                  <input
+                    name="targetPerWeek"
+                    type="number"
+                    min={1}
+                    max={7}
+                    defaultValue={habit?.targetPerWeek ?? 3}
+                    className="w-24 rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy focus:border-brand focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                    Veces al día
+                  </label>
+                  <input
+                    name="targetPerDay"
+                    type="number"
+                    min={1}
+                    max={100}
+                    defaultValue={habit?.targetPerDay ?? 1}
+                    className="w-full rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy focus:border-brand focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                    Gracia / semana
+                  </label>
+                  <input
+                    name="gracePerWeek"
+                    type="number"
+                    min={0}
+                    max={7}
+                    defaultValue={habit?.gracePerWeek ?? 1}
+                    className="w-full rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy focus:border-brand focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">

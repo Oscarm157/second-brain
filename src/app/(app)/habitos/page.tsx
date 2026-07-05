@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/session";
 import {
   listHabits,
+  listArchivedHabits,
   getTodayHabits,
   getHabitGrid,
   getGamification,
@@ -11,6 +12,7 @@ import { TodayList } from "@/components/habits/TodayList";
 import { HabitCard } from "@/components/habits/HabitCard";
 import { XpBar } from "@/components/habits/XpBar";
 import { AchievementsStrip } from "@/components/habits/AchievementsStrip";
+import { ArchivedHabits } from "@/components/habits/ArchivedHabits";
 import { HabitFormTrigger } from "@/components/habits/HabitForm";
 import { Tile } from "@/components/habits/Tile";
 
@@ -18,8 +20,9 @@ export const dynamic = "force-dynamic";
 
 export default async function HabitosPage() {
   const me = await requireUser();
-  const [habitsList, todayHabits, gamification] = await Promise.all([
+  const [habitsList, archivedHabits, todayHabits, gamification] = await Promise.all([
     listHabits(me.id),
+    listArchivedHabits(me.id),
     getTodayHabits(me.id),
     getGamification(me.id),
   ]);
@@ -106,6 +109,9 @@ export default async function HabitosPage() {
 
         {/* Achievements */}
         <AchievementsStrip achievements={gamification.achievements} />
+
+        {/* Archivados */}
+        <ArchivedHabits habits={archivedHabits} />
       </div>
     </div>
   );

@@ -11,8 +11,11 @@ type Achievement = {
 const ICONS: Record<string, string> = {
   first_habit: "🌱",
   streak_7: "🔥",
+  streak_14: "💪",
   streak_30: "⚡",
+  streak_100: "💯",
   perfect_week: "🏆",
+  century: "🎯",
 };
 
 export function AchievementsStrip({ achievements }: { achievements: Achievement[] }) {

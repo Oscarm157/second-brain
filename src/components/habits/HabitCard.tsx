@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { HabitHeatmap } from "./HabitHeatmap";
+import { HabitIcon } from "./habit-icons";
 import { StreakBadge } from "./StreakBadge";
 import { GoalBarCompact } from "./GoalBar";
-import { toggleEntry } from "@/app/(app)/habitos/actions";
+import { toggleEntry, incrementEntry } from "@/app/(app)/habitos/actions";
 import { computeStreak, computeHabitStats, computeGoalProgress } from "@/lib/habits/data";
 import type { GridCell } from "@/lib/habits/data";
 import type { Habit } from "@/lib/schema";
@@ -19,7 +20,9 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
 
   const today = todayISO();
   const todayCell = cells.find((c) => c.date === today);
-  const completedToday = (todayCell?.count ?? 0) >= habit.targetPerDay;
+  const todayCount = todayCell?.count ?? 0;
+  const multi = habit.targetPerDay > 1;
+  const completedToday = todayCount >= habit.targetPerDay;
 
   const entries = cells
     .filter((c) => c.count > 0)
@@ -28,11 +31,13 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
   const stats = computeHabitStats(cells, habit.targetPerDay, habit.createdAt);
   const goal = computeGoalProgress(cells, habit);
 
-  async function handleToggle() {
+  async function handleAction() {
     if (pending) return;
     setPending(true);
     setToggled(today);
-    await toggleEntry(habit.id, today);
+    // Multi-conteo: suma hasta la meta; ya completado o meta 1, alterna (resetea el día).
+    if (multi && !completedToday) await incrementEntry(habit.id, today);
+    else await toggleEntry(habit.id, today);
     setPending(false);
     setTimeout(() => setToggled(undefined), 1000);
   }
@@ -54,9 +59,7 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
             className="flex size-9 shrink-0 items-center justify-center rounded-md"
             style={{ background: `${habit.color}22` }}
           >
-            <span className="text-xl" style={{ color: habit.color }}>
-              ✦
-            </span>
+            <HabitIcon name={habit.icon} className="size-5" style={{ color: habit.color }} />
           </div>
           <div className="min-w-0">
             <p className="truncate font-semibold text-navy transition-colors group-hover:text-brand">
@@ -83,7 +86,7 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
 
       {/* Complete button */}
       <motion.button
-        onClick={handleToggle}
+        onClick={handleAction}
         disabled={pending}
         className="mt-1 w-full rounded-lg py-2 text-sm font-semibold transition-opacity disabled:opacity-60"
         style={{
@@ -92,7 +95,13 @@ export function HabitCard({ habit, cells }: { habit: Habit; cells: GridCell[] })
         }}
         whileTap={reduced ? {} : { scale: 0.97 }}
       >
-        {completedToday ? "✓ Hecho hoy" : "Marcar hecho"}
+        {completedToday
+          ? multi
+            ? `✓ Hecho hoy (${todayCount}/${habit.targetPerDay})`
+            : "✓ Hecho hoy"
+          : multi
+            ? `+1 · ${todayCount}/${habit.targetPerDay}`
+            : "Marcar hecho"}
       </motion.button>
     </motion.div>
   );
