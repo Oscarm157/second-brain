@@ -3,19 +3,23 @@
 import { useState, useTransition } from "react";
 import { Star, Trash2 } from "lucide-react";
 
-import type { PersonalTask } from "@/lib/schema";
+import type { PersonalTask, PersonalTaskStatus } from "@/lib/schema";
 import { Drawer } from "@/components/code-board/Drawer";
 import { FocusTimer } from "@/components/ui/FocusTimer";
-import { deleteTask, logFocusSession, updateTask } from "@/app/(app)/pendientes/actions";
+import { deleteTask, logFocusSession, moveTask, updateTask } from "@/app/(app)/pendientes/actions";
+import { PERSONAL_COLUMNS } from "@/lib/personal-tasks/columns";
 
 export function TaskDetail({
   task,
   open,
   onClose,
+  statusCounts,
 }: {
   task: PersonalTask | null;
   open: boolean;
   onClose: () => void;
+  /** Nº de tareas por estado, para que "mover" mande la card al final de la columna destino. */
+  statusCounts: Record<PersonalTaskStatus, number>;
 }) {
   if (!task) return null;
   return (
@@ -24,12 +28,20 @@ export function TaskDetail({
       onClose={onClose}
       title={<span className="text-sm font-semibold text-navy">Detalle de tarea</span>}
     >
-      <TaskDetailBody key={task.id} task={task} onClose={onClose} />
+      <TaskDetailBody key={task.id} task={task} onClose={onClose} statusCounts={statusCounts} />
     </Drawer>
   );
 }
 
-function TaskDetailBody({ task, onClose }: { task: PersonalTask; onClose: () => void }) {
+function TaskDetailBody({
+  task,
+  onClose,
+  statusCounts,
+}: {
+  task: PersonalTask;
+  onClose: () => void;
+  statusCounts: Record<PersonalTaskStatus, number>;
+}) {
   const [title, setTitle] = useState(task.title);
   const [notes, setNotes] = useState(task.notes ?? "");
   const [pending, startTransition] = useTransition();
@@ -67,6 +79,37 @@ function TaskDetailBody({ task, onClose }: { task: PersonalTask; onClose: () => 
           await logFocusSession(task.id, s);
         }}
       />
+
+      <div>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-faint">
+          Estado
+        </label>
+        <div className="grid grid-cols-3 gap-2">
+          {PERSONAL_COLUMNS.map((s) => {
+            const active = task.status === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() =>
+                  active
+                    ? undefined
+                    : startTransition(() => void moveTask(task.id, s.id, statusCounts[s.id]))
+                }
+                className={
+                  "flex min-h-11 items-center justify-center gap-1.5 rounded-md border text-sm font-medium transition-colors " +
+                  (active
+                    ? "border-brand bg-brand-soft text-brand"
+                    : "border-line text-ink hover:bg-secondary hover:text-navy")
+                }
+                aria-pressed={active}
+              >
+                <span className="size-2 rounded-full" style={{ background: s.accent }} />
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div>
         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-faint">

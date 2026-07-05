@@ -163,8 +163,8 @@ export function TransactionsTable({
       )}
 
       <div className="overflow-hidden rounded-xl border border-line bg-card">
-        <div className="max-h-[68vh] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[68vh] overflow-x-auto overflow-y-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr className="text-left text-xs uppercase tracking-wide text-faint">
                 <th className="w-10 px-4 py-3">

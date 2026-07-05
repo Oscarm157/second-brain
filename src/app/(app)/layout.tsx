@@ -14,7 +14,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-full bg-background">
       <Sidebar name={me.name} />
-      <main className="lg:pl-64">
+      <main className="pb-20 lg:pb-0 lg:pl-64">
         <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-12 lg:py-10">
           {children}
         </div>

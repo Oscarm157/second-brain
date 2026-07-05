@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -14,6 +15,8 @@ import {
   ListChecks,
   Code2,
   LogOut,
+  MoreHorizontal,
+  X,
 } from "lucide-react";
 
 import { logout } from "@/app/actions/auth";
@@ -46,7 +49,12 @@ const sections: NavSection[] = [
   },
 ];
 
-const allItems = sections.flatMap((s) => s.items);
+// Tab bar móvil, derivada de `sections` (fuente única): Inicio + Personal abajo,
+// Finanzas en el sheet "Más". El label de Finanzas en la barra sale de su primer item.
+const finanzasItems = sections.find((s) => s.title === "Finanzas")?.items ?? [];
+const personalItems = sections.find((s) => s.title === "Personal")?.items ?? [];
+const mobilePrimary: NavItem[] = [sections[0].items[0], ...personalItems];
+const mobileMore: NavItem[] = finanzasItems;
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -128,50 +136,120 @@ export function Sidebar({ name }: { name: string }) {
         </div>
       </aside>
 
-      {/* Móvil: barra superior + nav horizontal */}
-      <div className="sticky top-0 z-30 border-b border-line bg-card/90 backdrop-blur lg:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-md bg-brand text-[10px] font-bold text-white">
-              SB
-            </span>
-            <span className="font-display text-base font-bold tracking-tight text-navy">
-              Second Brain
-            </span>
-          </Link>
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
-            <form action={logout}>
+      {/* Móvil: barra superior slim + bottom tab bar */}
+      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-card/90 px-4 py-3 backdrop-blur lg:hidden">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="flex size-6 items-center justify-center rounded-md bg-brand text-[10px] font-bold text-white">
+            SB
+          </span>
+          <span className="font-display text-base font-bold tracking-tight text-navy">
+            Second Brain
+          </span>
+        </Link>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <form action={logout}>
+            <button
+              type="submit"
+              className="flex min-h-11 items-center gap-1.5 rounded-md px-2 text-xs text-ink transition-colors hover:text-alert"
+            >
+              <LogOut className="size-4" strokeWidth={1.8} />
+              Salir
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <MobileTabBar pathname={pathname} />
+    </>
+  );
+}
+
+function MobileTabBar({ pathname }: { pathname: string }) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreActive = mobileMore.some((it) => isActive(pathname, it.href));
+
+  return (
+    <>
+      {/* Sheet "Más": resto de Finanzas */}
+      {moreOpen ? (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button
+            aria-label="Cerrar"
+            onClick={() => setMoreOpen(false)}
+            className="absolute inset-0 bg-overlay backdrop-blur-sm"
+          />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-line bg-card pb-[env(safe-area-inset-bottom)] shadow-2xl">
+            <div className="flex items-center justify-between px-5 pb-2 pt-4">
+              <span className="text-xs font-semibold uppercase tracking-wide text-faint">
+                Finanzas
+              </span>
               <button
-                type="submit"
-                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-ink transition-colors hover:text-alert"
+                onClick={() => setMoreOpen(false)}
+                className="flex size-9 items-center justify-center rounded-md text-ink hover:bg-surface hover:text-navy"
+                aria-label="Cerrar"
               >
-                <LogOut className="size-3.5" strokeWidth={1.8} />
-                Salir
+                <X className="size-5" />
               </button>
-            </form>
+            </div>
+            <div className="grid grid-cols-3 gap-2 px-4 pb-5">
+              {mobileMore.map(({ href, label, icon: Icon }) => {
+                const active = isActive(pathname, href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMoreOpen(false)}
+                    className={cn(
+                      "flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border px-2 py-3 text-center text-xs font-medium transition-colors",
+                      active
+                        ? "border-brand bg-brand-soft text-brand"
+                        : "border-line text-ink hover:bg-surface hover:text-navy",
+                    )}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <Icon className="size-5" strokeWidth={active ? 2.2 : 1.8} />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
-          {allItems.map(({ href, label, icon: Icon }) => {
-            const active = isActive(pathname, href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                  active ? "bg-brand-soft text-brand" : "text-ink hover:bg-surface",
-                )}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon className="size-4" strokeWidth={active ? 2.2 : 1.8} />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+      ) : null}
+
+      {/* Bottom tab bar fija */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+        {mobilePrimary.map(({ href, label, icon: Icon }) => {
+          const active = isActive(pathname, href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+                active ? "text-brand" : "text-ink",
+              )}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon className="size-5" strokeWidth={active ? 2.3 : 1.8} />
+              {label}
+            </Link>
+          );
+        })}
+        <button
+          onClick={() => setMoreOpen(true)}
+          className={cn(
+            "flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+            moreActive || moreOpen ? "text-brand" : "text-ink",
+          )}
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+        >
+          <MoreHorizontal className="size-5" strokeWidth={moreActive || moreOpen ? 2.3 : 1.8} />
+          Más
+        </button>
+      </nav>
     </>
   );
 }

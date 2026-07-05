@@ -4,18 +4,14 @@ import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 
 import type { CodeCard, CodeCardNote } from "@/lib/schema";
-import { Kanban, type KanbanColumnDef } from "@/components/kanban/Kanban";
+import { Kanban } from "@/components/kanban/Kanban";
 import { moveCard, fetchCardDetail } from "@/app/(app)/codigo/actions";
 import { Drawer } from "./Drawer";
 import { CardDetail } from "./CardDetail";
 import { CardForm } from "./CardForm";
+import { CODE_COLUMNS } from "@/lib/code-board/columns";
 
-const COLUMNS: KanbanColumnDef[] = [
-  { id: "backlog", label: "Backlog", accent: "#6f6d82" },
-  { id: "in_progress", label: "En curso", accent: "#60a5fa" },
-  { id: "blocked", label: "Bloqueado", accent: "#fb923c" },
-  { id: "done", label: "Hecho", accent: "#34d399" },
-];
+const COLUMNS = CODE_COLUMNS;
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "#f87171",
@@ -38,6 +34,9 @@ export function CodeBoard({
   const [, startTransition] = useTransition();
 
   const visible = filter ? cards.filter((c) => c.project === filter) : cards;
+
+  const statusCounts = { backlog: 0, in_progress: 0, blocked: 0, done: 0 };
+  for (const c of cards) statusCounts[c.status] += 1;
 
   function openCard(card: CodeCard) {
     fetchCardDetail(card.id).then((d) => {
@@ -128,6 +127,7 @@ export function CodeBoard({
             projects={projects}
             onRefresh={refreshDetail}
             onClose={() => setDetail(null)}
+            statusCounts={statusCounts}
           />
         ) : null}
       </Drawer>
