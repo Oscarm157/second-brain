@@ -1,12 +1,14 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Archive } from "lucide-react";
 import { toast } from "sonner";
 
 import { archiveHabit } from "../actions";
 
 export function ArchiveHabitButton({ id, name }: { id: string; name: string }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function onArchive() {
@@ -14,7 +16,8 @@ export function ArchiveHabitButton({ id, name }: { id: string; name: string }) {
     startTransition(async () => {
       await archiveHabit(id);
       toast.success("Hábito archivado.");
-      window.location.href = "/habitos";
+      router.push("/habitos");
+      router.refresh();
     });
   }
 

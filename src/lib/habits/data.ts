@@ -54,7 +54,7 @@ export type GamificationData = {
   }>;
 };
 
-function toDateStr(d: Date): string {
+export function toDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
@@ -64,6 +64,15 @@ export async function listHabits(ownerId: string) {
     .select()
     .from(habits)
     .where(and(eq(habits.ownerId, ownerId), eq(habits.archived, false)))
+    .orderBy(habits.position);
+}
+
+/** Returns archived habits ordered by position. */
+export async function listArchivedHabits(ownerId: string) {
+  return db
+    .select()
+    .from(habits)
+    .where(and(eq(habits.ownerId, ownerId), eq(habits.archived, true)))
     .orderBy(habits.position);
 }
 
@@ -340,14 +349,18 @@ export function computeGoalProgress(
 const ACHIEVEMENT_DEFS = [
   { key: "first_habit", label: "Primer hábito", desc: "Completa tu primer hábito." },
   { key: "streak_7", label: "7 días", desc: "Mantén una racha de 7 días." },
+  { key: "streak_14", label: "14 días", desc: "Mantén una racha de 14 días." },
   { key: "streak_30", label: "30 días", desc: "Mantén una racha de 30 días." },
-  { key: "perfect_week", label: "Semana perfecta", desc: "Completa todos tus hábitos una semana." },
+  { key: "streak_100", label: "100 días", desc: "Mantén una racha de 100 días." },
+  { key: "perfect_week", label: "Semana perfecta", desc: "Cumple todos tus hábitos 7 días seguidos." },
+  { key: "century", label: "Centenario", desc: "Suma 100 completados en total." },
 ];
 
 /** Returns XP, level, and achievement status for the user. */
 export async function getGamification(ownerId: string): Promise<GamificationData> {
+  // XP por completados reales: suma `count` (un día con count 3 vale 3), no filas.
   const [{ total }] = await db
-    .select({ total: sql<number>`count(*)::int` })
+    .select({ total: sql<number>`coalesce(sum(${habitEntries.count}), 0)::int` })
     .from(habitEntries)
     .where(eq(habitEntries.ownerId, ownerId));
 

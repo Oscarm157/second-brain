@@ -11,6 +11,7 @@ import {
   computeGoalProgress,
 } from "@/lib/habits/data";
 import { HabitHeatmap } from "@/components/habits/HabitHeatmap";
+import { HabitIcon } from "@/components/habits/habit-icons";
 import { GoalBar } from "@/components/habits/GoalBar";
 import { HabitFormTrigger } from "@/components/habits/HabitForm";
 import { ArchiveHabitButton } from "./archive-habit";
@@ -62,9 +63,7 @@ export default async function HabitDetailPage({
             className="flex size-11 shrink-0 items-center justify-center rounded-lg"
             style={{ background: `${habit.color}22` }}
           >
-            <span className="text-2xl" style={{ color: habit.color }}>
-              ✦
-            </span>
+            <HabitIcon name={habit.icon} className="size-6" style={{ color: habit.color }} />
           </div>
           <div className="min-w-0">
             <h1 className="truncate font-display text-2xl font-bold tracking-tight text-navy">

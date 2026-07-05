@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { habits, habitEntries, habitAchievements } from "@/lib/schema";
-import { computeStreak } from "@/lib/habits/data";
+import { computeStreak, toDateStr } from "@/lib/habits/data";
+import { HABIT_ICON_KEYS } from "@/lib/habits/icon-keys";
 
 const uuid = z.string().uuid();
 
@@ -24,7 +25,7 @@ const COLORS = [
 
 const habitSchema = z.object({
   name: z.string().trim().min(1, "El nombre es requerido.").max(80),
-  icon: z.string().trim().min(1).max(40).default("check"),
+  icon: z.enum(HABIT_ICON_KEYS).default("sparkles"),
   color: z.enum(COLORS).default("#34d399"),
   frequency: z.enum(["daily", "weekly", "custom"]).default("daily"),
   targetPerWeek: z
@@ -45,8 +46,10 @@ const habitSchema = z.object({
     .string()
     .optional()
     .transform((v) => {
+      if (!v) return null;
       try {
-        return v ? (JSON.parse(v) as number[]) : null;
+        const parsed = z.array(z.number().int().min(0).max(6)).safeParse(JSON.parse(v));
+        return parsed.success ? parsed.data : null;
       } catch {
         return null;
       }
@@ -124,6 +127,17 @@ export async function archiveHabit(id: string): Promise<void> {
   revalidatePath("/habitos");
   revalidatePath("/");
   revalidatePath(`/habitos/${id}`);
+}
+
+export async function unarchiveHabit(id: string): Promise<void> {
+  const me = await requireUser();
+  if (!uuid.safeParse(id).success) return;
+  await db
+    .update(habits)
+    .set({ archived: false })
+    .where(and(eq(habits.id, id), eq(habits.ownerId, me.id)));
+  revalidatePath("/habitos");
+  revalidatePath("/");
 }
 
 export async function toggleEntry(habitId: string, date: string): Promise<void> {
@@ -209,16 +223,78 @@ async function evaluateAchievements(ownerId: string, habitId: string) {
 
   const { current } = computeStreak(entries, hRow);
 
-  if (current >= 7) {
+  const streakTiers: Array<[number, string]> = [
+    [7, "streak_7"],
+    [14, "streak_14"],
+    [30, "streak_30"],
+    [100, "streak_100"],
+  ];
+  for (const [days, key] of streakTiers) {
+    if (current >= days) {
+      await db
+        .insert(habitAchievements)
+        .values({ ownerId, habitId: null, key })
+        .onConflictDoNothing();
+    }
+  }
+
+  // Centenario: 100 completados reales (suma de count) en total.
+  const [{ total }] = await db
+    .select({ total: sql<number>`coalesce(sum(${habitEntries.count}), 0)::int` })
+    .from(habitEntries)
+    .where(eq(habitEntries.ownerId, ownerId));
+  if ((total ?? 0) >= 100) {
     await db
       .insert(habitAchievements)
-      .values({ ownerId, habitId: null, key: "streak_7" })
+      .values({ ownerId, habitId: null, key: "century" })
       .onConflictDoNothing();
   }
-  if (current >= 30) {
+
+  // Semana perfecta: los últimos 7 días, cada hábito activo cumplió su meta en cada día debido.
+  if (await isPerfectWeek(ownerId)) {
     await db
       .insert(habitAchievements)
-      .values({ ownerId, habitId: null, key: "streak_30" })
+      .values({ ownerId, habitId: null, key: "perfect_week" })
       .onConflictDoNothing();
   }
+}
+
+/** True si en los últimos 7 días cada hábito activo cumplió su meta en todos sus días debidos.
+ *  Ignora días previos a la creación de cada hábito (si no, uno recién creado nunca lo logra). */
+async function isPerfectWeek(ownerId: string): Promise<boolean> {
+  const active = await db
+    .select()
+    .from(habits)
+    .where(and(eq(habits.ownerId, ownerId), eq(habits.archived, false)));
+  if (active.length === 0) return false;
+
+  const today = new Date();
+  const window: { str: string; weekday: number }[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    window.push({ str: toDateStr(d), weekday: d.getDay() });
+  }
+  const oldest = window[window.length - 1].str;
+
+  const entries = await db
+    .select({ habitId: habitEntries.habitId, date: habitEntries.date, count: habitEntries.count })
+    .from(habitEntries)
+    .where(and(eq(habitEntries.ownerId, ownerId), gte(habitEntries.date, oldest)));
+  const counts = new Map(entries.map((e) => [`${e.habitId}:${e.date}`, e.count]));
+
+  for (const h of active) {
+    const createdStr = h.createdAt ? toDateStr(h.createdAt) : null;
+    for (const day of window) {
+      if (createdStr && day.str < createdStr) continue; // antes de existir el hábito
+      const due =
+        h.frequency === "daily" ||
+        ((h.frequency === "weekly" || h.frequency === "custom") &&
+          (h.weekdays ?? []).includes(day.weekday));
+      if (!due) continue;
+      const count = counts.get(`${h.id}:${day.str}`) ?? 0;
+      if (count < h.targetPerDay) return false;
+    }
+  }
+  return true;
 }
