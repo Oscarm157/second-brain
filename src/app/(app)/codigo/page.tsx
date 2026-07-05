@@ -19,7 +19,7 @@ export default async function CodigoPage() {
             Tablero de desarrollo de todos tus repos. Claude entra a moverlo y dejar notas.
           </p>
         </header>
-        <CodeBoard cards={cards} projects={projects} />
+        <CodeBoard cards={cards} projects={projects} userName={me.name} />
       </div>
     </div>
   );

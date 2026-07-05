@@ -6,6 +6,7 @@ import { GitBranch, Link2, Pencil, Trash2 } from "lucide-react";
 import type { CodeCard, CodeCardNote, CodeCardStatus } from "@/lib/schema";
 import { addNote, deleteCard, logFocusSession, moveCard } from "@/app/(app)/codigo/actions";
 import { CardForm } from "./CardForm";
+import { SpecView } from "./SpecView";
 import { FocusTimer } from "@/components/ui/FocusTimer";
 import { CODE_COLUMNS } from "@/lib/code-board/columns";
 
@@ -27,6 +28,7 @@ export function CardDetail({
   onRefresh,
   onClose,
   statusCounts,
+  userName,
 }: {
   detail: { card: CodeCard; notes: CodeCardNote[] };
   projects: string[];
@@ -34,6 +36,8 @@ export function CardDetail({
   onClose: () => void;
   /** Nº de cards por estado, para mandar la card al final de la columna destino al mover sin drag. */
   statusCounts: Record<CodeCardStatus, number>;
+  /** Nombre del usuario de sesión: etiqueta las notas humanas con su nombre real. */
+  userName: string;
 }) {
   const { card, notes } = detail;
   const [editing, setEditing] = useState(false);
@@ -174,9 +178,7 @@ export function CardDetail({
           Spec
         </h4>
         {card.spec ? (
-          <pre className="whitespace-pre-wrap rounded-lg border border-line bg-secondary p-4 font-mono text-[13px] leading-relaxed text-navy">
-            {card.spec}
-          </pre>
+          <SpecView spec={card.spec} />
         ) : (
           <p className="text-sm text-faint">Sin spec todavía.</p>
         )}
@@ -206,7 +208,7 @@ export function CardDetail({
                         : { background: "rgba(52,211,153,0.15)", color: "var(--income)" }
                     }
                   >
-                    {n.author === "claude" ? "Claude" : "Oscar"}
+                    {n.author === "claude" ? "Claude" : userName}
                   </span>
                   <span className="text-faint">{fmt(n.createdAt)}</span>
                 </div>
