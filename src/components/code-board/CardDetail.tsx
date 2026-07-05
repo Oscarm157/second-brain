@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import { GitBranch, Link2, Pencil, Trash2 } from "lucide-react";
 
-import type { CodeCard, CodeCardNote } from "@/lib/schema";
-import { addNote, deleteCard, logFocusSession } from "@/app/(app)/codigo/actions";
+import type { CodeCard, CodeCardNote, CodeCardStatus } from "@/lib/schema";
+import { addNote, deleteCard, logFocusSession, moveCard } from "@/app/(app)/codigo/actions";
 import { CardForm } from "./CardForm";
 import { FocusTimer } from "@/components/ui/FocusTimer";
+import { CODE_COLUMNS } from "@/lib/code-board/columns";
 
 const PRIORITY_LABEL: Record<string, string> = { low: "Baja", med: "Media", high: "Alta" };
 
@@ -25,11 +26,14 @@ export function CardDetail({
   projects,
   onRefresh,
   onClose,
+  statusCounts,
 }: {
   detail: { card: CodeCard; notes: CodeCardNote[] };
   projects: string[];
   onRefresh: () => void;
   onClose: () => void;
+  /** Nº de cards por estado, para mandar la card al final de la columna destino al mover sin drag. */
+  statusCounts: Record<CodeCardStatus, number>;
 }) {
   const { card, notes } = detail;
   const [editing, setEditing] = useState(false);
@@ -97,6 +101,40 @@ export function CardDetail({
           >
             <Trash2 className="size-3.5" /> Borrar
           </button>
+        </div>
+      </div>
+
+      <div>
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-faint">
+          Estado
+        </h4>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {CODE_COLUMNS.map((s) => {
+            const active = card.status === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() =>
+                  active
+                    ? undefined
+                    : startTransition(async () => {
+                        await moveCard(card.id, s.id, statusCounts[s.id]);
+                        onRefresh();
+                      })
+                }
+                className={
+                  "flex min-h-11 items-center justify-center gap-1.5 rounded-md border text-sm font-medium transition-colors " +
+                  (active
+                    ? "border-brand bg-brand-soft text-brand"
+                    : "border-line text-ink hover:bg-secondary hover:text-navy")
+                }
+                aria-pressed={active}
+              >
+                <span className="size-2 rounded-full" style={{ background: s.accent }} />
+                {s.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 

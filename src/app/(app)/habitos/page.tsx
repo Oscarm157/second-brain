@@ -75,7 +75,7 @@ export default async function HabitosPage() {
 
         {/* KPIs */}
         {habitsList.length > 0 && (
-          <section className="grid grid-cols-3 gap-4">
+          <section className="grid grid-cols-3 gap-2 sm:gap-4">
             <Tile label="Hábitos activos" value={String(activeCount)} />
             <Tile
               label="Racha más larga"

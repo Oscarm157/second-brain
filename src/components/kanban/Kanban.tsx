@@ -4,7 +4,8 @@ import { useState, type ReactNode } from "react";
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useDroppable,
   useSensor,
   useSensors,
@@ -80,8 +81,11 @@ export function Kanban<T extends KanbanItem>({
     setCols(group(items, columns, columnOf));
   }
 
+  // Ratón: arranca al mover 6px. Táctil: arranca al mantener 200ms (así el tap abre
+  // el detalle y el scroll vertical no se rompe; solo mantener-y-arrastrar mueve la card).
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
   );
 
   // El grid se ajusta al número de columnas: 3 columnas quedan más anchas que
@@ -209,7 +213,11 @@ function Column<T extends KanbanItem>({
       >
         <div ref={setNodeRef} className="flex flex-1 flex-col gap-2.5 px-3 pb-3">
           {items.map((it) => (
-            <SortableCard key={it.id} id={it.id} onClick={onCardClick ? () => onCardClick(it) : undefined}>
+            <SortableCard
+              key={it.id}
+              id={it.id}
+              onClick={onCardClick ? () => onCardClick(it) : undefined}
+            >
               {renderCard(it)}
             </SortableCard>
           ))}

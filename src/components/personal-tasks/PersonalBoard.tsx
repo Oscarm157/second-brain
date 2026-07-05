@@ -4,16 +4,13 @@ import { useRef, useState, useTransition } from "react";
 import { Calendar, Star, X } from "lucide-react";
 
 import type { PersonalTask } from "@/lib/schema";
-import { Kanban, type KanbanColumnDef } from "@/components/kanban/Kanban";
+import { Kanban } from "@/components/kanban/Kanban";
 import { TaskDetail } from "@/components/personal-tasks/TaskDetail";
 import { createTask, deleteTask, moveTask, updateTask } from "@/app/(app)/pendientes/actions";
 import { todayISO } from "@/lib/habits/date";
+import { PERSONAL_COLUMNS } from "@/lib/personal-tasks/columns";
 
-const COLUMNS: KanbanColumnDef[] = [
-  { id: "todo", label: "Por hacer", accent: "#60a5fa" },
-  { id: "doing", label: "Haciendo", accent: "#fbbf24" },
-  { id: "done", label: "Hecho", accent: "#34d399" },
-];
+const COLUMNS = PERSONAL_COLUMNS;
 
 const DATE_FMT = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" });
 
@@ -33,6 +30,9 @@ export function PersonalBoard({ tasks }: { tasks: PersonalTask[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = selectedId ? tasks.find((t) => t.id === selectedId) ?? null : null;
 
+  const statusCounts = { todo: 0, doing: 0, done: 0 };
+  for (const t of tasks) statusCounts[t.status] += 1;
+
   function onMove(id: string, toColumn: string, toIndex: number) {
     startTransition(() => void moveTask(id, toColumn, toIndex));
   }
@@ -48,7 +48,12 @@ export function PersonalBoard({ tasks }: { tasks: PersonalTask[] }) {
         columnFooter={(columnId) => <QuickAdd status={columnId} />}
         renderCard={(t) => <TaskCard task={t} />}
       />
-      <TaskDetail task={selected} open={!!selected} onClose={() => setSelectedId(null)} />
+      <TaskDetail
+        task={selected}
+        open={!!selected}
+        onClose={() => setSelectedId(null)}
+        statusCounts={statusCounts}
+      />
     </>
   );
 }
@@ -76,7 +81,10 @@ function TaskCard({ task }: { task: PersonalTask }) {
             e.stopPropagation();
             startTransition(() => void updateTask({ id: task.id, priority: starred ? 0 : 1 }));
           }}
-          className={starred ? "text-warn" : "text-faint opacity-0 group-hover:opacity-100"}
+          className={
+            "flex size-11 shrink-0 items-center justify-center rounded-md transition-opacity lg:size-8 " +
+            (starred ? "text-warn" : "text-faint lg:opacity-0 lg:group-hover:opacity-100")
+          }
           aria-label="Prioridad"
         >
           <Star className="size-4" fill={starred ? "currentColor" : "none"} />
@@ -86,7 +94,7 @@ function TaskCard({ task }: { task: PersonalTask }) {
             e.stopPropagation();
             startTransition(() => void deleteTask(task.id));
           }}
-          className="text-faint opacity-0 transition-colors hover:text-alert group-hover:opacity-100"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:text-alert lg:size-8 lg:opacity-0 lg:group-hover:opacity-100"
           aria-label="Borrar"
         >
           <X className="size-4" />
