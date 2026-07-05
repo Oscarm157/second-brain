@@ -1,5 +1,6 @@
 import { requireUser } from "@/lib/session";
-import { listTasks } from "@/lib/personal-tasks/data";
+import { listTasks, listSubtasks } from "@/lib/personal-tasks/data";
+import type { PersonalSubtask } from "@/lib/schema";
 import { PersonalBoard } from "@/components/personal-tasks/PersonalBoard";
 import { TaskFormTrigger } from "@/components/personal-tasks/TaskForm";
 
@@ -7,7 +8,10 @@ export const dynamic = "force-dynamic";
 
 export default async function PendientesPage() {
   const me = await requireUser();
-  const tasks = await listTasks(me.id);
+  const [tasks, subtasks] = await Promise.all([listTasks(me.id), listSubtasks(me.id)]);
+
+  const subtasksByTask: Record<string, PersonalSubtask[]> = {};
+  for (const s of subtasks) (subtasksByTask[s.taskId] ??= []).push(s);
 
   return (
     <div className="min-h-full bg-surface">
@@ -23,7 +27,7 @@ export default async function PendientesPage() {
           </div>
           <TaskFormTrigger />
         </header>
-        <PersonalBoard tasks={tasks} />
+        <PersonalBoard tasks={tasks} subtasksByTask={subtasksByTask} />
       </div>
     </div>
   );

@@ -6,10 +6,16 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { personalTasks } from "@/lib/schema";
+import { personalTasks, personalSubtasks } from "@/lib/schema";
+import { parseLabels } from "@/lib/personal-tasks/labels";
 
 const STATUSES = ["todo", "doing", "done"] as const;
 const uuid = z.string().uuid();
+
+const labelsSchema = z
+  .string()
+  .optional()
+  .transform((v) => parseLabels(v ?? ""));
 
 const createSchema = z.object({
   title: z.string().trim().min(1, "Escribe algo.").max(200),
@@ -20,6 +26,7 @@ const createSchema = z.object({
     .transform((v) => (v === "" ? undefined : v))
     .optional(),
   priority: z.coerce.number().int().min(0).max(2).optional(),
+  labels: labelsSchema,
 });
 
 export async function createTask(
@@ -36,6 +43,7 @@ export async function createTask(
     notes: parsed.data.notes ?? null,
     dueDate: parsed.data.dueDate ?? null,
     priority: parsed.data.priority ?? 0,
+    labels: parsed.data.labels,
   });
   revalidatePath("/pendientes");
 }
@@ -46,6 +54,7 @@ const updateSchema = z.object({
   notes: z.string().trim().max(2000).optional(),
   priority: z.coerce.number().int().min(0).max(2).optional(),
   dueDate: z.string().date().nullable().optional(),
+  labels: z.array(z.string().trim().toLowerCase().min(1).max(24)).max(8).optional(),
 });
 
 export async function updateTask(input: {
@@ -54,6 +63,7 @@ export async function updateTask(input: {
   notes?: string;
   priority?: number;
   dueDate?: string | null;
+  labels?: string[];
 }): Promise<void> {
   const me = await requireUser();
   const parsed = updateSchema.safeParse(input);
@@ -125,5 +135,61 @@ export async function logFocusSession(
       updatedAt: new Date(),
     })
     .where(and(eq(personalTasks.id, parsed.data.taskId), eq(personalTasks.ownerId, me.id)));
+  revalidatePath("/pendientes");
+}
+
+// ---- Subtareas ----
+
+export async function addSubtask(
+  taskId: string,
+  title: string,
+): Promise<void> {
+  const me = await requireUser();
+  if (!uuid.safeParse(taskId).success) return;
+  const clean = title.trim().slice(0, 200);
+  if (!clean) return;
+
+  // La subtarea hereda al owner de la tarea padre, verificada contra la DB.
+  const [task] = await db
+    .select({ id: personalTasks.id })
+    .from(personalTasks)
+    .where(and(eq(personalTasks.id, taskId), eq(personalTasks.ownerId, me.id)));
+  if (!task) return;
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(personalSubtasks)
+    .where(eq(personalSubtasks.taskId, taskId));
+
+  await db.insert(personalSubtasks).values({
+    ownerId: me.id,
+    taskId,
+    title: clean,
+    position: count ?? 0,
+  });
+  revalidatePath("/pendientes");
+}
+
+export async function toggleSubtask(id: string): Promise<void> {
+  const me = await requireUser();
+  if (!uuid.safeParse(id).success) return;
+  const [sub] = await db
+    .select({ id: personalSubtasks.id, done: personalSubtasks.done })
+    .from(personalSubtasks)
+    .where(and(eq(personalSubtasks.id, id), eq(personalSubtasks.ownerId, me.id)));
+  if (!sub) return;
+  await db
+    .update(personalSubtasks)
+    .set({ done: !sub.done })
+    .where(and(eq(personalSubtasks.id, id), eq(personalSubtasks.ownerId, me.id)));
+  revalidatePath("/pendientes");
+}
+
+export async function deleteSubtask(id: string): Promise<void> {
+  const me = await requireUser();
+  if (!uuid.safeParse(id).success) return;
+  await db
+    .delete(personalSubtasks)
+    .where(and(eq(personalSubtasks.id, id), eq(personalSubtasks.ownerId, me.id)));
   revalidatePath("/pendientes");
 }

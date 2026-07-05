@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useRef, useTransition } from "react";
-import { Star } from "lucide-react";
 
 import { createTask } from "@/app/(app)/pendientes/actions";
+import { PRIORITY_META } from "@/lib/personal-tasks/priority";
 
 export function TaskFormTrigger() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [starred, setStarred] = useState(false);
+  const [priority, setPriority] = useState(0);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -27,7 +27,10 @@ export function TaskFormTrigger() {
     const dueDate = (form.elements.namedItem("dueDate") as HTMLInputElement).value;
     if (dueDate) fd.set("dueDate", dueDate);
 
-    if (starred) fd.set("priority", "1");
+    const labels = (form.elements.namedItem("labels") as HTMLInputElement).value.trim();
+    if (labels) fd.set("labels", labels);
+
+    if (priority > 0) fd.set("priority", String(priority));
 
     setError(null);
     startTransition(async () => {
@@ -38,7 +41,7 @@ export function TaskFormTrigger() {
       }
       setOpen(false);
       formRef.current?.reset();
-      setStarred(false);
+      setPriority(0);
     });
   }
 
@@ -56,7 +59,7 @@ export function TaskFormTrigger() {
           className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
           style={{ background: "var(--overlay)" }}
         >
-          <div className="w-full max-w-md space-y-5 rounded-lg border border-line bg-card p-6 shadow-lg">
+          <div className="max-h-[90vh] w-full max-w-md space-y-5 overflow-y-auto rounded-lg border border-line bg-card p-6 shadow-lg">
             <h2 className="text-lg font-semibold text-navy">Nueva tarea</h2>
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
@@ -99,19 +102,42 @@ export function TaskFormTrigger() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-faint">
+                  Etiquetas
+                </label>
+                <input
+                  name="labels"
+                  maxLength={200}
+                  placeholder="casa, urgente"
+                  className="w-full rounded-md border border-line bg-secondary px-3 py-2.5 text-sm text-navy placeholder-faint focus:border-brand focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-faint">
                   Prioridad
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setStarred((s) => !s)}
-                  className={
-                    "inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm " +
-                    (starred ? "text-warn" : "text-ink hover:bg-secondary hover:text-navy")
-                  }
-                >
-                  <Star className="size-4" fill={starred ? "currentColor" : "none"} />
-                  {starred ? "Prioritaria" : "Marcar prioritaria"}
-                </button>
+                <div className="grid grid-cols-3 gap-2">
+                  {PRIORITY_META.map((p) => {
+                    const active = priority === p.value;
+                    return (
+                      <button
+                        key={p.value}
+                        type="button"
+                        onClick={() => setPriority(p.value)}
+                        className={
+                          "flex min-h-11 items-center justify-center gap-1.5 rounded-md border text-sm font-medium transition-colors " +
+                          (active ? "border-brand text-navy" : "border-line text-ink hover:bg-secondary")
+                        }
+                        style={active && p.color ? { color: p.color, borderColor: p.color } : undefined}
+                      >
+                        {p.color ? (
+                          <span className="size-2 rounded-full" style={{ background: p.color }} />
+                        ) : null}
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {error && <p className="text-sm text-alert">{error}</p>}
