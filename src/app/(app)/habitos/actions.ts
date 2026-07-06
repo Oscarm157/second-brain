@@ -170,6 +170,7 @@ export async function toggleEntry(habitId: string, date: string): Promise<void> 
     await evaluateAchievements(me.id, habitId);
   }
   revalidatePath("/habitos");
+  revalidatePath("/");
 }
 
 export async function incrementEntry(habitId: string, date: string): Promise<void> {
@@ -203,6 +204,7 @@ export async function incrementEntry(habitId: string, date: string): Promise<voi
   }
   await evaluateAchievements(me.id, habitId);
   revalidatePath("/habitos");
+  revalidatePath("/");
 }
 
 // Logros globales por usuario (habitId null). Idempotente por el unique (ownerId, key).

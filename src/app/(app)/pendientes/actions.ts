@@ -46,6 +46,7 @@ export async function createTask(
     labels: parsed.data.labels,
   });
   revalidatePath("/pendientes");
+  revalidatePath("/");
 }
 
 const updateSchema = z.object({
@@ -76,6 +77,7 @@ export async function updateTask(input: {
     .set({ ...fields, updatedAt: new Date() })
     .where(and(eq(personalTasks.id, id), eq(personalTasks.ownerId, me.id)));
   revalidatePath("/pendientes");
+  revalidatePath("/");
 }
 
 const moveSchema = z.object({
@@ -97,6 +99,7 @@ export async function moveTask(
     .set({ status: parsed.data.status, position: parsed.data.position, updatedAt: new Date() })
     .where(and(eq(personalTasks.id, parsed.data.id), eq(personalTasks.ownerId, me.id)));
   revalidatePath("/pendientes");
+  revalidatePath("/");
 }
 
 export async function deleteTask(id: string): Promise<void> {
