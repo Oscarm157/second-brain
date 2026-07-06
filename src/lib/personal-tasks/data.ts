@@ -24,20 +24,34 @@ export async function listSubtasks(ownerId: string): Promise<PersonalSubtask[]> 
     .orderBy(asc(personalSubtasks.position), asc(personalSubtasks.createdAt));
 }
 
-/** Resumen para el hub: pendientes abiertos + peek de títulos por hacer / haciendo. */
+export type TaskPeekItem = {
+  id: string;
+  title: string;
+  status: "todo" | "doing" | "done";
+  priority: number;
+  position: number;
+};
+
+/** Resumen para el hub: pendientes abiertos + los primeros items para actuar. */
 export async function getTasksSnapshot(ownerId: string): Promise<{
   open: number;
   doing: number;
-  peek: string[];
+  items: TaskPeekItem[];
 }> {
   const rows = await db
-    .select({ title: personalTasks.title, status: personalTasks.status })
+    .select({
+      id: personalTasks.id,
+      title: personalTasks.title,
+      status: personalTasks.status,
+      priority: personalTasks.priority,
+      position: personalTasks.position,
+    })
     .from(personalTasks)
     .where(and(eq(personalTasks.ownerId, ownerId), ne(personalTasks.status, "done")))
-    .orderBy(asc(personalTasks.position), asc(personalTasks.createdAt));
+    .orderBy(desc(personalTasks.priority), asc(personalTasks.position), asc(personalTasks.createdAt));
   return {
     open: rows.length,
     doing: rows.filter((r) => r.status === "doing").length,
-    peek: rows.slice(0, 3).map((r) => r.title),
+    items: rows.slice(0, 6),
   };
 }

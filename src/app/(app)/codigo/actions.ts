@@ -61,6 +61,7 @@ export async function createCard(
     prUrl: d.prUrl || null,
   });
   revalidatePath("/codigo");
+  revalidatePath("/");
 }
 
 export async function updateCard(
@@ -118,6 +119,7 @@ export async function moveCard(
     .set({ status: parsed.data.status, position: parsed.data.position, updatedAt: new Date() })
     .where(and(eq(codeCards.id, parsed.data.id), eq(codeCards.ownerId, me.id)));
   revalidatePath("/codigo");
+  revalidatePath("/");
 }
 
 export async function deleteCard(id: string): Promise<void> {

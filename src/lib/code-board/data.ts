@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -49,11 +49,24 @@ export async function listProjects(ownerId: string): Promise<string[]> {
   return rows.map((r) => r.project);
 }
 
-/** Resumen para el hub: cuántas cards abiertas / en curso / bloqueadas. */
+export type CodePeekItem = {
+  id: string;
+  title: string;
+  project: string;
+  status: "backlog" | "in_progress" | "blocked" | "done";
+  priority: "low" | "med" | "high";
+  position: number;
+};
+
+// Bloqueadas y en curso primero, luego backlog: es lo que hay que atender.
+const STATUS_WEIGHT: Record<string, number> = { blocked: 0, in_progress: 1, backlog: 2, done: 3 };
+
+/** Resumen para el hub: contadores + las primeras cards para actuar. */
 export async function getCodeSnapshot(ownerId: string): Promise<{
   inProgress: number;
   blocked: number;
   open: number;
+  items: CodePeekItem[];
 }> {
   const [row] = await db
     .select({
@@ -63,9 +76,28 @@ export async function getCodeSnapshot(ownerId: string): Promise<{
     })
     .from(codeCards)
     .where(eq(codeCards.ownerId, ownerId));
+
+  const rows = await db
+    .select({
+      id: codeCards.id,
+      title: codeCards.title,
+      project: codeCards.project,
+      status: codeCards.status,
+      priority: codeCards.priority,
+      position: codeCards.position,
+    })
+    .from(codeCards)
+    .where(and(eq(codeCards.ownerId, ownerId), ne(codeCards.status, "done")))
+    .orderBy(asc(codeCards.position), asc(codeCards.createdAt));
+
+  const items = rows
+    .sort((a, b) => (STATUS_WEIGHT[a.status] ?? 9) - (STATUS_WEIGHT[b.status] ?? 9))
+    .slice(0, 6);
+
   return {
     inProgress: row?.inProgress ?? 0,
     blocked: row?.blocked ?? 0,
     open: row?.open ?? 0,
+    items,
   };
 }
